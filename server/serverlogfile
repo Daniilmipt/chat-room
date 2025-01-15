@@ -1,0 +1,4 @@
+{"level":"info","ts":1736623054.073276,"caller":"server/main.go:73","msg":"Server started at http://localhost:8080"}
+{"level":"info","ts":1736623087.363889,"caller":"server/main.go:80","msg":"Shutting down server..."}
+{"level":"info","ts":1736623087.372032,"caller":"server/main.go:93","msg":"Server exited gracefully"}
+{"level":"info","ts":1736623087.4033723,"caller":"server/main.go:101","msg":"Chat process killed gracefully"}
