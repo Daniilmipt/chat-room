@@ -16,7 +16,7 @@ import (
 
 const maxWorkersFileIter = 10
 
-func (h *ChatHandler) sendMessageInChannel() {
+func (h *ChatHandler) sendMessageInOut() {
 	fmt.Println("start read msg from channel")
 
 	for msg := range h.msgCh {

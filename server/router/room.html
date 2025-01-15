@@ -118,6 +118,36 @@
         .input-container button:hover {
             background-color: #5b6eae;
         }
+
+        .emoji-popup {
+            position: absolute;
+            bottom: 60px;
+            right: 20px;
+            background-color: #2f3136;
+            border: 1px solid #202225;
+            border-radius: 8px;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .emoji-popup.hidden {
+            display: none;
+        }
+
+        .emoji {
+            font-size: 24px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .emoji:hover {
+            background-color: #40444b;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -131,7 +161,21 @@
         <div class="input-container">
             <input type="text" id="messageInput" placeholder="Type your message here..." />
             <button id="sendMessageButton">➤</button>
+            <button id="emojiButton">😊</button>
         </div>
+    </div>
+    
+    <div id="emojiPopup" class="emoji-popup hidden">
+        <div class="emoji">😀</div>
+        <div class="emoji">😁</div>
+        <div class="emoji">😂</div>
+        <div class="emoji">🤣</div>
+        <div class="emoji">😃</div>
+        <div class="emoji">😄</div>
+        <div class="emoji">😅</div>
+        <div class="emoji">😆</div>
+        <div class="emoji">😉</div>
+        <div class="emoji">😊</div>
     </div>
 
     <script>
@@ -139,7 +183,31 @@
         const messagesContainer = document.getElementById("messages");
         const messageInput = document.getElementById("messageInput");
         const sendMessageButton = document.getElementById("sendMessageButton");
+        const emojyPreviewsendMessageButton = document.getElementById("emojyPreview");
         const logoutButton = document.getElementById("logoutButton");
+
+        const emojiButton = document.getElementById("emojiButton");
+        const emojiPopup = document.getElementById("emojiPopup");
+        const emojis = document.querySelectorAll(".emoji");
+        emojiButton.addEventListener("click", () => {
+            emojiPopup.classList.toggle("hidden");
+        });
+
+        // Insert emoji into messageInput
+        emojis.forEach((emoji) => {
+            emoji.addEventListener("click", () => {
+                const emojiChar = emoji.textContent;
+                messageInput.value += emojiChar; // Append emoji to the input field
+                emojiPopup.classList.add("hidden"); // Hide the popup after selection
+            });
+        });
+
+        // Close the popup if clicked outside
+        document.addEventListener("click", (event) => {
+            if (!emojiPopup.contains(event.target) && event.target !== emojiButton) {
+                emojiPopup.classList.add("hidden");
+            }
+        });
 
         // Extract query parameters
         const urlParams = new URLSearchParams(window.location.search);

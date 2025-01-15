@@ -4,3 +4,5 @@
 {"level":"info","ts":1736938276.159735,"caller":"service/service.go:94","msg":"message was published","id":"67d166a0-899c-4a31-bb1c-161c80369aa6","message":"first","chat-roomError":"json: unsupported type: chan *pkg.ChatMessage"}
 {"level":"info","ts":1736938351.705513,"caller":"service/service.go:82","msg":"received message","id":"67d166a0-899c-4a31-bb1c-161c80369aa6","message":"2"}
 {"level":"info","ts":1736938351.707242,"caller":"service/service.go:94","msg":"message was published","id":"67d166a0-899c-4a31-bb1c-161c80369aa6","message":"2","chat-roomError":"json: unsupported type: chan *pkg.ChatMessage"}
+{"level":"info","ts":1736940122.86407,"caller":"service/service.go:82","msg":"received message","id":"ac2ca007-6569-4e27-bbc3-580c92c0ed84","message":"1 😀"}
+{"level":"info","ts":1736940122.865796,"caller":"service/service.go:94","msg":"message was published","id":"ac2ca007-6569-4e27-bbc3-580c92c0ed84","message":"1 😀","chat-roomError":"json: unsupported type: chan *pkg.ChatMessage"}

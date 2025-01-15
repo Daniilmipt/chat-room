@@ -17,3 +17,20 @@
 {"level":"info","ts":1736938517.125157,"caller":"server/main.go:51","msg":"Server started at http://localhost:8080"}
 {"level":"info","ts":1736938527.9519901,"caller":"server/main.go:58","msg":"Shutting down server..."}
 {"level":"info","ts":1736938529.013185,"caller":"server/main.go:71","msg":"Server exited gracefully"}
+{"level":"info","ts":1736940086.250023,"caller":"server/main.go:51","msg":"Server started at http://localhost:8080"}
+{"level":"info","ts":1736940096.088053,"caller":"router/handler_internal.go:58","msg":"join to chat room","id":"28e58c56-ecb1-4783-a4c0-4fa12f72fef9","room":"school","nick":"micke"}
+{"level":"info","ts":1736940122.8354108,"caller":"router/handler_internal.go:58","msg":"join to chat room","id":"28e58c56-ecb1-4783-a4c0-4fa12f72fef9","room":"q","nick":"micke"}
+{"level":"info","ts":1736940143.288648,"caller":"server/main.go:58","msg":"Shutting down server..."}
+{"level":"info","ts":1736940143.290061,"caller":"server/main.go:71","msg":"Server exited gracefully"}
+{"level":"info","ts":1736941212.5797,"caller":"server/main.go:51","msg":"Server started at http://localhost:8080"}
+{"level":"info","ts":1736941221.48687,"caller":"router/handler_internal.go:58","msg":"join to chat room","id":"904a7ef8-df05-46ab-9396-914a8e76115d","room":"q","nick":"micke"}
+{"level":"info","ts":1736941241.1233542,"caller":"server/main.go:58","msg":"Shutting down server..."}
+{"level":"info","ts":1736941241.126454,"caller":"server/main.go:71","msg":"Server exited gracefully"}
+{"level":"info","ts":1736941307.9193652,"caller":"server/main.go:51","msg":"Server started at http://localhost:8080"}
+{"level":"info","ts":1736941318.638874,"caller":"router/handler_internal.go:58","msg":"join to chat room","id":"ad2c5b2a-71d0-4c08-bb20-f4a9bed580c3","room":"school","nick":"micke"}
+{"level":"info","ts":1736941328.8131819,"caller":"server/main.go:58","msg":"Shutting down server..."}
+{"level":"info","ts":1736941328.814195,"caller":"server/main.go:71","msg":"Server exited gracefully"}
+{"level":"info","ts":1736959016.794106,"caller":"server/main.go:51","msg":"Server started at http://localhost:8080"}
+{"level":"info","ts":1736959024.30273,"caller":"router/handler_internal.go:58","msg":"join to chat room","id":"8e492a64-3149-467b-89d0-f684008e2f13","room":"school","nick":"micke"}
+{"level":"info","ts":1736959038.447851,"caller":"server/main.go:58","msg":"Shutting down server..."}
+{"level":"info","ts":1736959038.448135,"caller":"server/main.go:71","msg":"Server exited gracefully"}

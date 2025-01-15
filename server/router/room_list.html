@@ -259,11 +259,6 @@
             }
 
             try {
-                //const startChatResponse = await fetch(`/start-chat?room=${encodeURIComponent(room)}&nick=${encodeURIComponent(userNick)}`);
-                //if (!startChatResponse.ok) {
-                //    throw new Error("Failed to start the chat session");
-                //}
-
                 window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room)}`;
             } catch (error) {
                 console.error("Error joining room:", error);

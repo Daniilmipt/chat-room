@@ -8,7 +8,7 @@ import (
 )
 
 func (h *ChatHandler) GetRoomView(c *gin.Context) {
-	go h.sendMessageInChannel()
+	go h.sendMessageInOut()
 
 	room := c.Query("room")
 	nick := c.Query("nick")
