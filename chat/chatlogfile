@@ -1,0 +1,6 @@
+{"level":"info","ts":1736938263.732084,"caller":"service/service.go:82","msg":"received message","id":"b01fed7e-5d78-4be1-b538-bc5baebd0e7d","message":"34"}
+{"level":"info","ts":1736938263.7342122,"caller":"service/service.go:94","msg":"message was published","id":"b01fed7e-5d78-4be1-b538-bc5baebd0e7d","message":"34","chat-roomError":"json: unsupported type: chan *pkg.ChatMessage"}
+{"level":"info","ts":1736938276.1581178,"caller":"service/service.go:82","msg":"received message","id":"67d166a0-899c-4a31-bb1c-161c80369aa6","message":"first"}
+{"level":"info","ts":1736938276.159735,"caller":"service/service.go:94","msg":"message was published","id":"67d166a0-899c-4a31-bb1c-161c80369aa6","message":"first","chat-roomError":"json: unsupported type: chan *pkg.ChatMessage"}
+{"level":"info","ts":1736938351.705513,"caller":"service/service.go:82","msg":"received message","id":"67d166a0-899c-4a31-bb1c-161c80369aa6","message":"2"}
+{"level":"info","ts":1736938351.707242,"caller":"service/service.go:94","msg":"message was published","id":"67d166a0-899c-4a31-bb1c-161c80369aa6","message":"2","chat-roomError":"json: unsupported type: chan *pkg.ChatMessage"}

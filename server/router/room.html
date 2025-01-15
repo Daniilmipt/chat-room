@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Rooms</title>
+    <title>Chat Room</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* Apply Discord-like styling */
         body {
             margin: 0;
             font-family: 'Roboto', sans-serif;
@@ -18,281 +19,247 @@
 
         header {
             background-color: #2f3136;
-            color: #fff;
             padding: 15px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            border-bottom: 1px solid #202225;
-        }
-
-        .container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-
-        .room-list {
-            flex: 1;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            overflow-y: auto;
-            border: 1px solid #2f3136;
-            border-radius: 8px;
-            background-color: #40444b;
-        }
-
-        .room-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            border-bottom: 1px solid #2f3136;
-            cursor: pointer;
-            transition: background 0.3s;
+            border-bottom: 1px solid #202225;
         }
 
-        .room-item:hover {
-            background-color: #3a3d42;
-        }
-
-        .room-name {
-            font-size: 16px;
+        header #roomInfo {
+            font-size: 18px;
             font-weight: 500;
             color: #fff;
         }
 
-        .last-message {
-            font-size: 14px;
-            color: #b9bbbe;
-        }
-
-        .button-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        button {
-            flex: 1;
-            padding: 12px 15px;
-            background-color: #7289da;
+        header button {
+            background-color: #ff5252;
             color: #fff;
             border: none;
+            padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
-            margin: 0 5px;
-            transition: background 0.3s;
         }
 
-        button:hover {
-            background-color: #5b6eae;
+        header button:hover {
+            background-color: #e74c3c;
         }
 
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+        .chat-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            flex-direction: column;
+            flex: 1;
         }
 
-        .modal.hidden {
-            display: none;
-        }
-
-        .modal-content {
-            background-color: #2f3136;
-            padding: 20px;
+        .message {
+            margin: 10px 0;
+            padding: 10px;
             border-radius: 8px;
-            text-align: center;
-            width: 300px;
-            position: relative;
+            max-width: 60%;
+            display: flex;
+            flex-direction: column;
+            word-wrap: break-word;
         }
-
-        .modal-content h2 {
-            margin: 0 0 10px;
+        
+        .message.self {
+            background-color: #7289da;
+            color: #fff;
+            align-self: flex-end;
+        }
+        
+        .message.other {
+            background-color: #2f3136;
+            color: #b9bbbe;
+            align-self: flex-start;
+        }
+        
+        .message .nick {
+            font-weight: bold;
+            margin-bottom: 5px;
             color: #fff;
         }
+        
+        .message .time {
+            font-size: 12px;
+            color: #72767d;
+            margin-top: 5px;
+            text-align: right;
+        }
 
-        .modal-content input {
-            width: 100%;
+        .input-container {
+            display: flex;
             padding: 10px;
-            margin-bottom: 10px;
+            background-color: #2f3136;
+            border-top: 1px solid #202225;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 10px;
             border: none;
             border-radius: 5px;
             background-color: #40444b;
             color: #fff;
         }
 
-        .modal-content button {
+        .input-container button {
+            margin-left: 10px;
             background-color: #7289da;
             color: #fff;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .modal-content button:hover {
+        .input-container button:hover {
             background-color: #5b6eae;
-        }
-
-        .modal-content .close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 20px;
-            color: #fff;
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <header>Chat Rooms</header>
-    <div class="container">
-        <ul class="room-list" id="roomList">
-            <!-- Room items dynamically inserted here -->
-        </ul>
-        <div class="button-container">
-            <button onclick="joinRoom()">Join a New Room</button>
-            <button onclick="fetchRoot()">Log out</button>
-        </div>
-    </div>
+    <header>
+        <div id="roomInfo">Loading room information...</div>
+        <button class="logout-button" id="logoutButton">Chat List</button>
+    </header>
 
-    <!-- Modal for Joining Room -->
-    <div class="modal hidden" id="joinRoomModal">
-        <div class="modal-content">
-            <span class="close" onclick="closeJoinRoomModal()">×</span>
-            <h2>Join a Room</h2>
-            <input type="text" id="roomNameInput" placeholder="Enter room name">
-            <button onclick="submitJoinRoom()">Join</button>
+    <div class="chat-container">
+        <div class="messages" id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Type your message here..." />
+            <button id="sendMessageButton">➤</button>
         </div>
     </div>
 
     <script>
-        const userNick = sessionStorage.getItem("user");
+        const roomInfo = document.getElementById("roomInfo");
+        const messagesContainer = document.getElementById("messages");
+        const messageInput = document.getElementById("messageInput");
+        const sendMessageButton = document.getElementById("sendMessageButton");
+        const logoutButton = document.getElementById("logoutButton");
 
-        async function loadRooms() {
+        // Extract query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const nick = urlParams.get("nick") || "Anonymous";
+        const room = urlParams.get("room") || "Main";
+
+        roomInfo.textContent = `Room: ${room}, Nick: ${nick}`;
+
+        const roomMessages = {};
+        async function loadMessages() {
             try {
-                const response = await fetch(`/rooms-last-message`);
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch room messages: ${response.statusText}`);
-                }
-
-                const roomMessages = await response.json();
-                const parsedRooms = Object.keys(roomMessages).map((roomName) => ({
-                    room: roomName,
-                    "last-message": roomMessages[roomName]
-                }));
-
-                const roomList = document.getElementById('roomList');
-                roomList.innerHTML = '';
-
-                parsedRooms.forEach((room) => {
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('room-item');
-
-                    const roomInfo = document.createElement('div');
-                    roomInfo.classList.add('room-info');
-
-                    const roomNameDiv = document.createElement('div');
-                    roomNameDiv.classList.add('room-name');
-                    roomNameDiv.textContent = room.room;
-
-                    const lastMessageDiv = document.createElement('div');
-                    lastMessageDiv.classList.add('last-message');
-                    lastMessageDiv.textContent = room["last-message"] || 'No messages yet';
-
-                    roomInfo.appendChild(roomNameDiv);
-                    roomInfo.appendChild(lastMessageDiv);
-
-                    const enterButton = document.createElement('button');
-                    enterButton.classList.add('enter-room');
-                    enterButton.textContent = 'Enter';
-                    enterButton.onclick = () => {
-                        if (!userNick) {
-                            alert("User nickname not found!");
-                            return;
-                        }
-                        window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room.room)}`;
-                    };
-
-                    listItem.appendChild(roomInfo);
-                    listItem.appendChild(enterButton);
-
-                    roomList.appendChild(listItem);
+                const response = await fetch(`/messages?room=${room}`, {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
                 });
+                const text = await response.text();
+                const lines = text.trim().split("\n");
+                console.log(lines)
+        
+                // Clear the messages container
+                messagesContainer.innerHTML = "";
+        
+                lines.forEach((line) => {
+                    const parts = line.split(": ");
+                    if (parts.length === 3) {
+                        const sender = parts[0];
+                        const content = parts[1];
+                        const timestamp = parts[2];
+                        const timestampNew = formatTimestamp(timestamp);
+        
+                        const messageDiv = document.createElement("div");
+                        messageDiv.classList.add("message");
+        
+                        // Check if the message is from the current user
+                        messageDiv.classList.add(sender === nick ? "self" : "other");
+        
+                        messageDiv.innerHTML = `
+                            <div class="nick">${sender}</div>
+                            <div class="content">${content}</div>
+                            <div class="time">${timestampNew}</div>
+                        `;
+        
+                        messagesContainer.appendChild(messageDiv);
+                    }
+                });
+        
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
             } catch (error) {
-                console.error('Error loading rooms:', error);
+                console.error("Error loading messages:", error);
             }
         }
 
-        function joinRoom() {
-            const modal = document.getElementById('joinRoomModal');
-            modal.classList.remove('hidden');
-        }
+        loadMessages();
+        setInterval(loadMessages(), 5000);
+        
+        
 
-        function closeJoinRoomModal() {
-            const modal = document.getElementById('joinRoomModal');
-            modal.classList.add('hidden');
-        }
-
-        async function submitJoinRoom() {
-            const room = document.getElementById('roomNameInput').value;
-            if (!room) {
-                alert("Room name is required.");
-                return;
-            }
-
-            if (!userNick) {
-                alert("User nick not found in sessionStorage.");
-                return;
-            }
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
 
             try {
-                //const startChatResponse = await fetch(`/start-chat?room=${encodeURIComponent(room)}&nick=${encodeURIComponent(userNick)}`);
-                //if (!startChatResponse.ok) {
-                //    throw new Error("Failed to start the chat session");
-                //}
+                await fetch(`/send-message`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        nick,
+                        room,
+                        message,
+                    }),
+                });
 
-                window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room)}`;
+                messageInput.value = ""; // Clear the input
             } catch (error) {
-                console.error("Error joining room:", error);
-                alert("Failed to join the room.");
-            } finally {
-                closeJoinRoomModal();
+                console.error("Error sending message:", error);
+                alert("Failed to send message.");
             }
         }
 
-        function deleteCookie(name) {
-            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        function logOut() {
+            // Redirect to the start page
+            window.location.href = "/rooms-list";
         }
 
-        async function fetchRoot() {
-            try {
-                const response = await fetch("/");
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch root: ${response.statusText}`);
-                }
-                sessionStorage.removeItem("user");
-                deleteCookie("user")
-                window.location.href = `/`;
-            } catch (error) {
-                console.error("Error fetching root:", error);
-                alert("Failed to fetch root.");
-            }
-        }
+        // Attach event listeners
+        sendMessageButton.addEventListener("click", sendMessage);
+        messageInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendMessage();
+        });
 
-        loadRooms();
+        logoutButton.addEventListener("click", logOut);
+
+        function formatTimestamp(timestamp) {
+            // Extract the date and time part from the input string
+            const datePart = timestamp.split(" ")[0]; // "2025-01-08"
+            const timePart = timestamp.split(" ")[1]; // "21:50:01.405727934"
+        
+            // Combine the date and time into a single valid ISO string
+            const isoString = `${datePart}T${timePart}`;
+        
+            // Create a Date object
+            const date = new Date(isoString);
+        
+            // Format the date using Intl.DateTimeFormat
+            const formatter = new Intl.DateTimeFormat("en", {
+                day: "numeric",
+                month: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false, // 24-hour format
+            });
+        
+            // Format and return the string
+            return formatter.format(date).replace(",", "");
+        }
     </script>
 </body>
 </html>

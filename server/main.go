@@ -6,8 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"social/pkg"
-	"social/pkg/cron"
-	"social/pkg/processes"
+	"social/pkg/models"
 	chrouter "social/router"
 	"sync"
 	"syscall"
@@ -21,27 +20,7 @@ func main() {
 	logger, f := pkg.SetupLogger()
 	defer f.Close()
 
-	// schedule
-	sch := cron.NewSchedule(
-		[]cron.CronJob{
-			cron.NewJob(
-				logger,
-				time.Second*60,
-				"kill-chat-processes",
-				func() {
-					errCh := processes.SheduleProcessCount()
-					for err := range errCh {
-						logger.Error("fail to kill chat process",
-							zap.Error(err),
-						)
-					}
-				},
-			),
-		},
-	)
-	sch.Start()
-
-	msgCh := make(chan string, 10)
+	msgCh := make(chan models.Messages, 10)
 	defer close(msgCh)
 
 	router := gin.Default()
@@ -57,7 +36,6 @@ func main() {
 		authorized.GET("/room", chatHandler.GetRoomView)
 		authorized.GET("/rooms-list", chatHandler.GetRoomsListView)
 		authorized.GET("/rooms-last-message", chatHandler.GetRoomsLastMessage)
-		// authorized.GET("/start-chat", chatHandler.JoinChatRoom)
 		authorized.GET("/messages", chatHandler.GetMessagesFile)
 		authorized.POST("/send-message", chatHandler.SendMessage)
 	}
@@ -84,21 +62,13 @@ func main() {
 
 	wg := sync.WaitGroup{}
 
-	wg.Add(2)
+	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		if err := srv.Shutdown(ctx); err != nil {
 			logger.Error("failed to shutdown server", zap.Error(err))
 		}
 		logger.Info("Server exited gracefully")
-	}()
-
-	go func() {
-		defer wg.Done()
-		if err := processes.StopJoinRoom(); err != nil {
-			logger.Error("failed to kill \"chat\" process", zap.Error(err))
-		}
-		logger.Info("Chat process killed gracefully")
 	}()
 	wg.Wait()
 
