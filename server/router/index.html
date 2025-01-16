@@ -6,6 +6,7 @@
     <title>Chat Setup</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* Global Styles */
         body {
             margin: 0;
             font-family: 'Roboto', sans-serif;
@@ -15,57 +16,105 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            padding: 1rem; /* Add padding for smaller screens */
         }
 
         .container {
             display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
             gap: 20px;
+            justify-content: center; /* Center forms horizontally */
         }
 
         .form-wrapper {
             background-color: #2f3136;
-            padding: 20px;
+            padding: 1.5rem;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            width: 300px;
+            width: 100%;
+            max-width: 320px; /* Limit max width for larger screens */
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 1.5rem;
             color: #fff;
             text-align: center;
+            margin-bottom: 1rem;
         }
 
         label {
             display: block;
-            margin: 10px 0 5px;
-            font-size: 14px;
+            margin: 0.5rem 0 0.25rem;
+            font-size: 0.9rem;
             color: #b9bbbe;
         }
 
         input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
             border: none;
             border-radius: 5px;
             background-color: #40444b;
             color: #fff;
+            font-size: 1rem;
         }
 
         button {
             width: 100%;
-            padding: 10px;
+            padding: 0.8rem;
             background-color: #7289da;
             color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
         }
 
         button:hover {
             background-color: #5b6eae;
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            label {
+                font-size: 0.85rem;
+            }
+
+            input {
+                font-size: 0.9rem;
+                padding: 0.7rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+                padding: 0.7rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-wrapper {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.1rem;
+            }
+
+            input {
+                font-size: 0.85rem;
+                padding: 0.6rem;
+            }
+
+            button {
+                font-size: 0.85rem;
+                padding: 0.6rem;
+            }
         }
     </style>
 </head>

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Room</title>
+    <title>Room</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Apply Discord-like styling */
+        /* Global Styles */
         body {
             margin: 0;
             font-family: 'Roboto', sans-serif;
@@ -15,19 +15,22 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overflow: hidden;
         }
 
+        /* Header */
         header {
             background-color: #2f3136;
-            padding: 15px;
+            padding: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #202225;
+            flex-shrink: 0;
         }
 
         header #roomInfo {
-            font-size: 18px;
+            font-size: 1.2rem; /* Responsive font size */
             font-weight: 500;
             color: #fff;
         }
@@ -36,100 +39,109 @@
             background-color: #ff5252;
             color: #fff;
             border: none;
-            padding: 8px 15px;
+            padding: 0.5rem 1rem;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 1rem;
         }
 
         header button:hover {
             background-color: #e74c3c;
         }
 
+        /* Chat Container */
         .chat-container {
             display: flex;
             flex-direction: column;
             flex: 1;
+            overflow-y: auto;
         }
 
+        /* Messages */
         .message {
-            margin: 10px 0;
-            padding: 10px;
+            margin: 0.5rem;
+            padding: 0.8rem;
             border-radius: 8px;
-            max-width: 60%;
+            max-width: 80%; /* Scale with screen width */
             display: flex;
             flex-direction: column;
             word-wrap: break-word;
         }
-        
+
         .message.self {
             background-color: #7289da;
             color: #fff;
             align-self: flex-end;
         }
-        
+
         .message.other {
             background-color: #2f3136;
             color: #b9bbbe;
             align-self: flex-start;
         }
-        
+
         .message .nick {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 0.3rem;
             color: #fff;
         }
-        
+
         .message .time {
-            font-size: 12px;
+            font-size: 0.8rem;
             color: #72767d;
-            margin-top: 5px;
+            margin-top: 0.3rem;
             text-align: right;
         }
 
+        /* Input Container */
         .input-container {
             display: flex;
-            padding: 10px;
+            padding: 0.5rem;
             background-color: #2f3136;
             border-top: 1px solid #202225;
+            flex-shrink: 0;
         }
 
         .input-container input {
             flex: 1;
-            padding: 10px;
+            padding: 0.8rem;
             border: none;
             border-radius: 5px;
             background-color: #40444b;
             color: #fff;
+            font-size: 1rem;
         }
 
         .input-container button {
-            margin-left: 10px;
+            margin-left: 0.5rem;
             background-color: #7289da;
             color: #fff;
             border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 3rem;
+            height: 3rem;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.5rem;
         }
 
         .input-container button:hover {
             background-color: #5b6eae;
         }
 
+        /* Emoji Popup */
         .emoji-popup {
             position: absolute;
-            bottom: 60px;
-            right: 20px;
+            bottom: 4rem;
+            right: 1rem;
             background-color: #2f3136;
             border: 1px solid #202225;
             border-radius: 8px;
-            padding: 10px;
+            padding: 1rem;
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
+            gap: 0.5rem;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
             z-index: 1000;
         }
@@ -139,7 +151,7 @@
         }
 
         .emoji {
-            font-size: 24px;
+            font-size: 1.5rem;
             cursor: pointer;
             text-align: center;
         }
@@ -147,6 +159,48 @@
         .emoji:hover {
             background-color: #40444b;
             border-radius: 50%;
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            header #roomInfo {
+                font-size: 1rem;
+            }
+
+            .message {
+                font-size: 0.9rem;
+            }
+
+            .input-container input {
+                font-size: 0.9rem;
+            }
+
+            .input-container button {
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header #roomInfo {
+                font-size: 0.9rem;
+            }
+
+            .message {
+                font-size: 0.8rem;
+                padding: 0.6rem;
+            }
+
+            .input-container input {
+                font-size: 0.8rem;
+            }
+
+            .input-container button {
+                width: 2rem;
+                height: 2rem;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
@@ -264,7 +318,7 @@
         }
 
         loadMessages();
-        setInterval(loadMessages(), 5000);
+        setInterval(loadMessages, 2000);
         
         
 

@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"social/pkg"
 	"strings"
 	"sync"
@@ -42,8 +43,29 @@ func (h *ChatHandler) sendMessageInOut() {
 	}
 }
 
+func getFileExecPath() string {
+	var executable string
+	switch runtime.GOOS {
+	case "windows":
+		executable = "chat.exe"
+	case "darwin":
+		if runtime.GOARCH == "arm64" {
+			executable = "chat_mac_arm"
+		} else {
+			executable = "chat_mac"
+		}
+	case "linux":
+		executable = "chat_linux"
+	default:
+		panic("Unsupported operating system")
+	}
+	return "../chat/" + executable
+}
+
 func (h *ChatHandler) joinToRoom(room, nick string) error {
-	cmd := exec.Command("/Users/da.sadovnikov/reps/social_network/chat/chat", "-nick="+nick, "-room="+room)
+	execPath := getFileExecPath()
+	h.logger.Info("start chat process", zap.String("path", execPath))
+	cmd := exec.Command(execPath, "-nick="+nick, "-room="+room)
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
