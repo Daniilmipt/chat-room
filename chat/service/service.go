@@ -85,7 +85,8 @@ func (s *Service) sendMessage(cr *pkg.ChatRoom) {
 			if err != nil {
 				s.logger.Error("failed to send message",
 					zap.String("message", message),
-					zap.Any("chat-room", cr),
+					zap.String("room", cr.Room),
+					zap.String("nick", cr.Nick),
 					zap.Error(err),
 				)
 				continue
@@ -93,7 +94,8 @@ func (s *Service) sendMessage(cr *pkg.ChatRoom) {
 
 			s.logger.Info("message was published",
 				zap.String("message", message),
-				zap.Any("chat-room", *cr),
+				zap.String("room", cr.Room),
+				zap.String("nick", cr.Nick),
 			)
 		} else {
 			if err := scanner.Err(); err != nil {

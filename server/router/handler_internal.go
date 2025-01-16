@@ -64,7 +64,6 @@ func getFileExecPath() string {
 
 func (h *ChatHandler) joinToRoom(room, nick string) error {
 	execPath := getFileExecPath()
-	h.logger.Info("start chat process", zap.String("path", execPath))
 	cmd := exec.Command(execPath, "-nick="+nick, "-room="+room)
 
 	stdin, err := cmd.StdinPipe()
