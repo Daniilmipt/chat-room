@@ -113,7 +113,6 @@ func (cr *ChatRoom) readLoop(errCh chan<- error) {
 }
 
 func (cr *ChatRoom) writeInFile(cm *ChatMessage) error {
-	fmt.Println(cm)
 	logEntry := fmt.Sprintf("%s: %s: %s\n", cr.Nick, cm.Message, time.Now())
 	if _, err := cr.writer.WriteString(logEntry); err != nil {
 		return err

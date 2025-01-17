@@ -68,6 +68,5 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("send to channel %s/n", request.Message)
 	h.msgCh <- request
 }

@@ -18,11 +18,8 @@ import (
 const maxWorkersFileIter = 10
 
 func (h *ChatHandler) sendMessageInOut() {
-	fmt.Println("start read msg from channel")
 
 	for msg := range h.msgCh {
-		fmt.Println("read message from channel", msg)
-
 		stdin := h.stdinMap[msg.Room]
 		if stdin == nil {
 			if err := h.joinToRoom(msg.Room, msg.Nick); err != nil {
