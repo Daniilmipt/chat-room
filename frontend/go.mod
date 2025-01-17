@@ -2,7 +2,10 @@ module chatroom
 
 go 1.23.4
 
-require github.com/gin-gonic/gin v1.10.0
+require (
+	github.com/gin-gonic/gin v1.10.0
+	gopkg.in/yaml.v2 v2.4.0
+)
 
 require (
 	github.com/google/go-cmp v0.6.0 // indirect

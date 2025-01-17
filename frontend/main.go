@@ -1,13 +1,15 @@
 package main
 
 import (
-	"context"
-	"net/http"
-	"os"
-	"os/signal"
+	"chatroom/config"
 	"chatroom/pkg"
 	"chatroom/pkg/models"
 	chrouter "chatroom/router"
+	"context"
+	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
 	"sync"
 	"syscall"
 	"time"
@@ -17,6 +19,8 @@ import (
 )
 
 func main() {
+	cfg := config.ParseConfig()
+
 	logger, f := pkg.SetupLogger()
 	defer f.Close()
 
@@ -44,11 +48,11 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
-		Addr:    ":8082",
+		Addr:    fmt.Sprintf(":%s", cfg.Port),
 		Handler: router,
 	}
 	go func() {
-		logger.Info("Server started at http://localhost:8080")
+		logger.Info(fmt.Sprintf("Server started at http://localhost:%s", cfg.Port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
