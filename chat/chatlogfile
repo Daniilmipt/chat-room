@@ -1,2 +1,0 @@
-{"level":"info","ts":1737060937.013452,"caller":"service/service.go:82","msg":"received message","id":"f779dd60-5176-4b80-9e58-64991d683ddc","message":"qw"}
-{"level":"info","ts":1737060937.0154521,"caller":"service/service.go:95","msg":"message was published","id":"f779dd60-5176-4b80-9e58-64991d683ddc","message":"qw","room":"school","nick":"micke"}

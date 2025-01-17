@@ -1,0 +1,2 @@
+{"level":"fatal","ts":1737100628.440904,"caller":"service/service.go:36","msg":"failed to create libp2p Host","id":"15ed8601-fb27-4aa8-8b54-6639d2a24420","error":"failed to listen on any addresses: [listen tcp4 31.31.198.142:8082: bind: cannot assign requested address]"}
+{"level":"fatal","ts":1737100639.3272445,"caller":"service/service.go:36","msg":"failed to create libp2p Host","id":"c50e3fdf-c0ed-4b8f-9a5f-616026af0034","error":"failed to listen on any addresses: [listen tcp4 31.31.198.142:0: bind: cannot assign requested address]"}

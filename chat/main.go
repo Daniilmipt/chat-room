@@ -11,11 +11,6 @@ import (
 	"os"
 )
 
-const (
-	defaultHost = "0.0.0.0"
-	defaultPort = "0"
-)
-
 func parseFlags() (string, string) {
 	nickFlag := flag.String("nick", "anonymous", "room to use in chat. will be \"anonymous\" if empty")
 	roomFlag := flag.String("room", "main", "name of chat room to join. will be \"main\" if empty")
@@ -47,7 +42,8 @@ func main() {
 	msgF, msgWritter := messageLogWritter(room)
 	defer msgF.Close()
 
-	s := service.NewService(logger, defaultHost, defaultPort)
+	cfg := parseConfig()
+	s := service.NewService(logger, cfg.Host, cfg.Port)
 
 	ctx := context.Background()
 	s.Run(ctx, msgWritter, nick, room)
