@@ -10,8 +10,8 @@ import (
 const configPath = "./config/config.yml"
 
 type Config struct {
-	Front FrontConfig `yaml:"frontend"`
-	Back BackendConfig `yaml:"backend"`
+	Frontend FrontConfig `yaml:"frontend"`
+	Backend BackendConfig `yaml:"backend"`
 }
 
 type FrontConfig struct {

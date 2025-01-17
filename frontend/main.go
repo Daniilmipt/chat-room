@@ -30,7 +30,7 @@ func main() {
 	router := gin.Default()
 	router.Use(corsMiddleware())
 
-	chatHandler := chrouter.NewChatHandler(logger, msgCh)
+	chatHandler := chrouter.NewChatHandler(logger, msgCh, cfg.Backend)
 
 	router.GET("/", chatHandler.GetAuthView)
 
@@ -48,11 +48,11 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", cfg.Front.Port),
+		Addr:    fmt.Sprintf(":%s", cfg.Frontend.Port),
 		Handler: router,
 	}
 	go func() {
-		logger.Info(fmt.Sprintf("Server started at http://localhost:%s", cfg.Front.Port))
+		logger.Info(fmt.Sprintf("Server started at http://localhost:%s", cfg.Frontend.Port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}
