@@ -48,11 +48,11 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%s", cfg.Port),
+		Addr:    fmt.Sprintf(":%s", cfg.Front.Port),
 		Handler: router,
 	}
 	go func() {
-		logger.Info(fmt.Sprintf("Server started at http://localhost:%s", cfg.Port))
+		logger.Info(fmt.Sprintf("Server started at http://localhost:%s", cfg.Front.Port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			panic(err)
 		}

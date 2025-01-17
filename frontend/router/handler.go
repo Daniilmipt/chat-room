@@ -1,12 +1,13 @@
 package router
 
 import (
+	"chatroom/config"
+	"chatroom/pkg/models"
 	"embed"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"chatroom/pkg/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -20,12 +21,18 @@ type ChatHandler struct {
 	logger   *zap.Logger
 	msgCh    chan models.Messages
 	stdinMap map[string]*io.WriteCloser
+	backCfg  config.BackendConfig
 }
 
-func NewChatHandler(logger *zap.Logger, msgCh chan models.Messages) *ChatHandler {
+func NewChatHandler(logger *zap.Logger, msgCh chan models.Messages, backCfg config.BackendConfig) *ChatHandler {
 	logger = logger.With(zap.String("id", uuid.New().String()))
 
-	return &ChatHandler{logger: logger, msgCh: msgCh, stdinMap: make(map[string]*io.WriteCloser)}
+	return &ChatHandler{
+		logger:   logger,
+		msgCh:    msgCh,
+		stdinMap: make(map[string]*io.WriteCloser),
+		backCfg:  backCfg,
+	}
 }
 
 func (h *ChatHandler) GetRoomsLastMessage(c *gin.Context) {

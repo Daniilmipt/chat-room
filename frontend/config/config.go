@@ -10,7 +10,19 @@ import (
 const configPath = "./config/config.yml"
 
 type Config struct {
+	Front FrontConfig `yaml:"frontend"`
+	Back BackendConfig `yaml:"backend"`
+}
+
+type FrontConfig struct {
 	Port string `yaml:"port"`
+
+}
+
+type BackendConfig struct {
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
+
 }
 
 func ParseConfig() Config {

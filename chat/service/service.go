@@ -2,6 +2,7 @@ package service
 
 import (
 	"bufio"
+	"chat/config"
 	"chat/pkg"
 	"context"
 	"fmt"
@@ -19,13 +20,13 @@ type Service struct {
 	port   string
 }
 
-func NewService(logger *zap.Logger, host string, port string) *Service {
+func NewService(logger *zap.Logger, cfg config.Config) *Service {
 	logger = logger.With(zap.String("id", uuid.New().String()))
 
 	return &Service{
 		logger: logger,
-		host:   host,
-		port:   port,
+		host:   cfg.Host,
+		port:   cfg.Port,
 	}
 }
 

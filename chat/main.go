@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"chat/config"
 	"chat/pkg"
 	"chat/service"
 	"context"
@@ -16,15 +17,19 @@ const (
 	defaultPort = "0"
 )
 
-func parseFlags() (string, string) {
+func parseFlags() (string, string, config.Config) {
 	nickFlag := flag.String("nick", "anonymous", "room to use in chat. will be \"anonymous\" if empty")
 	roomFlag := flag.String("room", "main", "name of chat room to join. will be \"main\" if empty")
+	hostFlag := flag.String("host", defaultHost, "host which we will listen p2p")
+	portFlag := flag.String("port", defaultPort, "port for listening p2p")
 	flag.Parse()
 
 	room := *roomFlag
 	nick := *nickFlag
+	host := *hostFlag
+	port := *portFlag
 
-	return room, nick
+	return room, nick, config.Config{Host: host, Port: port}
 }
 
 func messageLogWritter(room string) (*os.File, *bufio.Writer) {
@@ -39,7 +44,7 @@ func messageLogWritter(room string) (*os.File, *bufio.Writer) {
 }
 
 func main() {
-	room, nick := parseFlags()
+	room, nick, cfg := parseFlags()
 
 	logger, f := pkg.SetupLogger()
 	defer f.Close()
@@ -47,7 +52,7 @@ func main() {
 	msgF, msgWritter := messageLogWritter(room)
 	defer msgF.Close()
 
-	s := service.NewService(logger, defaultHost, defaultPort)
+	s := service.NewService(logger, cfg)
 
 	ctx := context.Background()
 	s.Run(ctx, msgWritter, nick, room)

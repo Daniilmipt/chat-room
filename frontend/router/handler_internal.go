@@ -63,7 +63,7 @@ func (h *ChatHandler) joinToRoom(room, nick string) error {
 	execPath := getFileExecPath()
 	h.logger.Info("start chat process", zap.String("path", execPath))
 
-	cmd := exec.Command(execPath, "-nick="+nick, "-room="+room)
+	cmd := exec.Command(execPath, "-nick="+nick, "-room="+room, "-host="+h.backCfg.Host, "-port="+h.backCfg.Port)
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
