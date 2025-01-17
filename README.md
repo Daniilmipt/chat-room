@@ -7,12 +7,38 @@ This is a decentralized chatroom application built with Golang and leveraging th
    ```bash
    ./chatroom
    ```
+2. Login:
 
-3. Send message
 ![alt text](./images/login.png)
-2. Start another instance of the application on the same network:
+
+
+3. Send message:
+![alt text](./images/room.png)
+
+4. Start another instance of the application on the same network and send message:
    ```bash
-   ./chat -nick=Bob -room=developers
+   ./chatroom
+   ```
+![alt text](./images/room_view.png)
+
+5. If we click on `Chat List` we go on page: 
+
+![alt text](./images/room_list.png)
+
+### Test Running
+
+You can go to folder `running` and `running_copy` and you will have 2 users in your net:
+
+1. 
+   ```bash
+   cd running
+   ./chatroom
+   ```
+
+2. 
+   ```bash
+   cd running_copy
+   ./chatroom
    ```
 
 ### Features

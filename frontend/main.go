@@ -58,6 +58,10 @@ func main() {
 		}
 	}()
 
+	if err := os.Mkdir("../messages", os.ModePerm); err != nil {
+		logger.Info("can not create messages dis", zap.Error(err))
+	}
+
 	<-stop
 	logger.Info("Shutting down server...")
 
