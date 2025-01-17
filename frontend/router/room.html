@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Global Styles */
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #36393f;
+            color: #dcddde;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            background-color: #2f3136;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #202225;
+            flex-shrink: 0;
+        }
+
+        header #roomInfo {
+            font-size: 1.2rem; /* Responsive font size */
+            font-weight: 500;
+            color: #fff;
+        }
+
+        header button {
+            background-color: #ff5252;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        header button:hover {
+            background-color: #e74c3c;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Messages */
+        .message {
+            margin: 0.5rem;
+            padding: 0.8rem;
+            border-radius: 8px;
+            max-width: 80%; /* Scale with screen width */
+            display: flex;
+            flex-direction: column;
+            word-wrap: break-word;
+        }
+
+        .message.self {
+            background-color: #7289da;
+            color: #fff;
+            align-self: flex-end;
+        }
+
+        .message.other {
+            background-color: #2f3136;
+            color: #b9bbbe;
+            align-self: flex-start;
+        }
+
+        .message .nick {
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+            color: #fff;
+        }
+
+        .message .time {
+            font-size: 0.8rem;
+            color: #72767d;
+            margin-top: 0.3rem;
+            text-align: right;
+        }
+
+        /* Input Container */
+        .input-container {
+            display: flex;
+            padding: 0.5rem;
+            background-color: #2f3136;
+            border-top: 1px solid #202225;
+            flex-shrink: 0;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #40444b;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .input-container button {
+            margin-left: 0.5rem;
+            background-color: #7289da;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .input-container button:hover {
+            background-color: #5b6eae;
+        }
+
+        /* Emoji Popup */
+        .emoji-popup {
+            position: absolute;
+            bottom: 4rem;
+            right: 1rem;
+            background-color: #2f3136;
+            border: 1px solid #202225;
+            border-radius: 8px;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .emoji-popup.hidden {
+            display: none;
+        }
+
+        .emoji {
+            font-size: 1.5rem;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .emoji:hover {
+            background-color: #40444b;
+            border-radius: 50%;
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            header #roomInfo {
+                font-size: 1rem;
+            }
+
+            .message {
+                font-size: 0.9rem;
+            }
+
+            .input-container input {
+                font-size: 0.9rem;
+            }
+
+            .input-container button {
+                width: 2.5rem;
+                height: 2.5rem;
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header #roomInfo {
+                font-size: 0.9rem;
+            }
+
+            .message {
+                font-size: 0.8rem;
+                padding: 0.6rem;
+            }
+
+            .input-container input {
+                font-size: 0.8rem;
+            }
+
+            .input-container button {
+                width: 2rem;
+                height: 2rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div id="roomInfo">Loading room information...</div>
+        <button class="logout-button" id="logoutButton">Chat List</button>
+    </header>
+
+    <div class="chat-container">
+        <div class="messages" id="messages"></div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Type your message here..." />
+            <button id="sendMessageButton">➤</button>
+            <button id="emojiButton">😊</button>
+        </div>
+    </div>
+    
+    <div id="emojiPopup" class="emoji-popup hidden">
+        <div class="emoji">😀</div>
+        <div class="emoji">😁</div>
+        <div class="emoji">😂</div>
+        <div class="emoji">🤣</div>
+        <div class="emoji">😃</div>
+        <div class="emoji">😄</div>
+        <div class="emoji">😅</div>
+        <div class="emoji">😆</div>
+        <div class="emoji">😉</div>
+        <div class="emoji">😊</div>
+    </div>
+
+    <script>
+        const roomInfo = document.getElementById("roomInfo");
+        const messagesContainer = document.getElementById("messages");
+        const messageInput = document.getElementById("messageInput");
+        const sendMessageButton = document.getElementById("sendMessageButton");
+        const emojyPreviewsendMessageButton = document.getElementById("emojyPreview");
+        const logoutButton = document.getElementById("logoutButton");
+
+        const emojiButton = document.getElementById("emojiButton");
+        const emojiPopup = document.getElementById("emojiPopup");
+        const emojis = document.querySelectorAll(".emoji");
+        emojiButton.addEventListener("click", () => {
+            emojiPopup.classList.toggle("hidden");
+        });
+
+        // Insert emoji into messageInput
+        emojis.forEach((emoji) => {
+            emoji.addEventListener("click", () => {
+                const emojiChar = emoji.textContent;
+                messageInput.value += emojiChar; // Append emoji to the input field
+                emojiPopup.classList.add("hidden"); // Hide the popup after selection
+            });
+        });
+
+        // Close the popup if clicked outside
+        document.addEventListener("click", (event) => {
+            if (!emojiPopup.contains(event.target) && event.target !== emojiButton) {
+                emojiPopup.classList.add("hidden");
+            }
+        });
+
+        // Extract query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const nick = urlParams.get("nick") || "Anonymous";
+        const room = urlParams.get("room") || "Main";
+
+        roomInfo.textContent = `Room: ${room}, Nick: ${nick}`;
+
+        const roomMessages = {};
+        async function loadMessages() {
+            try {
+                const response = await fetch(`/messages?room=${room}`, {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                const text = await response.text();
+                const lines = text.trim().split("\n");
+                console.log(lines)
+        
+                // Clear the messages container
+                messagesContainer.innerHTML = "";
+        
+                lines.forEach((line) => {
+                    const parts = line.split(": ");
+                    if (parts.length === 3) {
+                        const sender = parts[0];
+                        const content = parts[1];
+                        const timestamp = parts[2];
+                        const timestampNew = formatTimestamp(timestamp);
+        
+                        const messageDiv = document.createElement("div");
+                        messageDiv.classList.add("message");
+        
+                        // Check if the message is from the current user
+                        messageDiv.classList.add(sender === nick ? "self" : "other");
+        
+                        messageDiv.innerHTML = `
+                            <div class="nick">${sender}</div>
+                            <div class="content">${content}</div>
+                            <div class="time">${timestampNew}</div>
+                        `;
+        
+                        messagesContainer.appendChild(messageDiv);
+                    }
+                });
+        
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } catch (error) {
+                console.error("Error loading messages:", error);
+            }
+        }
+
+        loadMessages();
+        setInterval(loadMessages, 2000);
+        
+        
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            try {
+                await fetch(`/send-message`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        nick,
+                        room,
+                        message,
+                    }),
+                });
+
+                messageInput.value = ""; // Clear the input
+            } catch (error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message.");
+            }
+        }
+
+        function logOut() {
+            // Redirect to the start page
+            window.location.href = "/rooms-list";
+        }
+
+        // Attach event listeners
+        sendMessageButton.addEventListener("click", sendMessage);
+        messageInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendMessage();
+        });
+
+        logoutButton.addEventListener("click", logOut);
+
+        function formatTimestamp(timestamp) {
+            // Extract the date and time part from the input string
+            const datePart = timestamp.split(" ")[0]; // "2025-01-08"
+            const timePart = timestamp.split(" ")[1]; // "21:50:01.405727934"
+        
+            // Combine the date and time into a single valid ISO string
+            const isoString = `${datePart}T${timePart}`;
+        
+            // Create a Date object
+            const date = new Date(isoString);
+        
+            // Format the date using Intl.DateTimeFormat
+            const formatter = new Intl.DateTimeFormat("en", {
+                day: "numeric",
+                month: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false, // 24-hour format
+            });
+        
+            // Format and return the string
+            return formatter.format(date).replace(",", "");
+        }
+    </script>
+</body>
+</html>

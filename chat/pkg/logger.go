@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const logFilePath = "../chat/chatlog"
+const logFilePath = "./chatlogfile"
 
 func SetupLogger() (*zap.Logger, *os.File) {
     file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)

@@ -2,6 +2,7 @@ package service
 
 import (
 	"bufio"
+	"chat/config"
 	"chat/pkg"
 	"context"
 	"fmt"
@@ -19,13 +20,13 @@ type Service struct {
 	port   string
 }
 
-func NewService(logger *zap.Logger, host string, port string) *Service {
+func NewService(logger *zap.Logger, cfg config.Config) *Service {
 	logger = logger.With(zap.String("id", uuid.New().String()))
 
 	return &Service{
 		logger: logger,
-		host:   host,
-		port:   port,
+		host:   cfg.Host,
+		port:   cfg.Port,
 	}
 }
 
@@ -71,6 +72,8 @@ func (s *Service) Run(ctx context.Context, msgWritter *bufio.Writer, nick, room 
 }
 
 func (s *Service) sendMessage(cr *pkg.ChatRoom) {
+	logger := s.logger.With(zap.String("nick", cr.Nick), zap.String("room", cr.Room))
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		if scanner.Scan() {
@@ -79,27 +82,23 @@ func (s *Service) sendMessage(cr *pkg.ChatRoom) {
 				continue
 			}
 
-			s.logger.Info("received message", zap.String("message", message))
+			logger.Info("received message", zap.String("message", message))
 
 			err := cr.Publish(message)
 			if err != nil {
-				s.logger.Error("failed to send message",
+				logger.Error("failed to send message",
 					zap.String("message", message),
-					zap.String("room", cr.Room),
-					zap.String("nick", cr.Nick),
 					zap.Error(err),
 				)
 				continue
 			}
 
-			s.logger.Info("message was published",
+			logger.Info("message was published",
 				zap.String("message", message),
-				zap.String("room", cr.Room),
-				zap.String("nick", cr.Nick),
 			)
 		} else {
 			if err := scanner.Err(); err != nil {
-				s.logger.Error("failed to get scanner error", zap.Error(err))
+				logger.Error("failed to get scanner error", zap.Error(err))
 			}
 			break
 		}
