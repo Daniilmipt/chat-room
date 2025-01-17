@@ -1,0 +1,6 @@
+{"level":"info","ts":1737146722.5327294,"caller":"service/service.go:84","msg":"received message","id":"b2dc9928-15a2-4338-9df4-f7188d49dc66","nick":"micke","room":"school","message":"Hello! 😀"}
+{"level":"info","ts":1737146722.5334766,"caller":"service/service.go:95","msg":"message was published","id":"b2dc9928-15a2-4338-9df4-f7188d49dc66","nick":"micke","room":"school","message":"Hello! 😀"}
+{"level":"info","ts":1737146849.043741,"caller":"service/service.go:84","msg":"received message","id":"aa0d305e-30fd-43e0-89fe-74c0e1091dc6","nick":"john","room":"school","message":"Hello! 😁"}
+{"level":"info","ts":1737146849.0447047,"caller":"service/service.go:95","msg":"message was published","id":"aa0d305e-30fd-43e0-89fe-74c0e1091dc6","nick":"john","room":"school","message":"Hello! 😁"}
+{"level":"info","ts":1737146880.6452148,"caller":"service/service.go:84","msg":"received message","id":"aa0d305e-30fd-43e0-89fe-74c0e1091dc6","nick":"john","room":"school","message":"How are you?"}
+{"level":"info","ts":1737146880.645541,"caller":"service/service.go:95","msg":"message was published","id":"aa0d305e-30fd-43e0-89fe-74c0e1091dc6","nick":"john","room":"school","message":"How are you?"}

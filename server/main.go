@@ -44,7 +44,7 @@ func main() {
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8082",
 		Handler: router,
 	}
 	go func() {
