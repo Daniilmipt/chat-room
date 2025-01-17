@@ -71,6 +71,8 @@ func (s *Service) Run(ctx context.Context, msgWritter *bufio.Writer, nick, room 
 }
 
 func (s *Service) sendMessage(cr *pkg.ChatRoom) {
+	logger := s.logger.With(zap.String("nick", cr.Nick), zap.String("room", cr.Room))
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		if scanner.Scan() {
@@ -79,25 +81,23 @@ func (s *Service) sendMessage(cr *pkg.ChatRoom) {
 				continue
 			}
 
-			s.logger.Info("received message", zap.String("message", message))
+			logger.Info("received message", zap.String("message", message))
 
 			err := cr.Publish(message)
 			if err != nil {
-				s.logger.Error("failed to send message",
+				logger.Error("failed to send message",
 					zap.String("message", message),
-					zap.Any("chat-room", cr),
 					zap.Error(err),
 				)
 				continue
 			}
 
-			s.logger.Info("message was published",
+			logger.Info("message was published",
 				zap.String("message", message),
-				zap.Any("chat-room", *cr),
 			)
 		} else {
 			if err := scanner.Err(); err != nil {
-				s.logger.Error("failed to get scanner error", zap.Error(err))
+				logger.Error("failed to get scanner error", zap.Error(err))
 			}
 			break
 		}

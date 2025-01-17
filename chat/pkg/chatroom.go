@@ -27,9 +27,9 @@ type ChatRoom struct {
 	topic *pubsub.Topic
 	sub   *pubsub.Subscription
 
-	room string
 	self peer.ID
-	nick string
+	Room string
+	Nick string
 
 	writer *bufio.Writer
 }
@@ -61,8 +61,8 @@ func JoinChatRoom(ctx context.Context, ps *pubsub.PubSub, selfID peer.ID, nick s
 		topic:    topic,
 		sub:      sub,
 		self:     selfID,
-		nick:     nick,
-		room:     room,
+		Nick:     nick,
+		Room:     room,
 		Messages: make(chan *ChatMessage, ChatRoomBufSize),
 		writer:   writer,
 	}
@@ -76,7 +76,7 @@ func (cr *ChatRoom) Publish(message string) error {
 	m := ChatMessage{
 		Message:    message,
 		SenderID:   cr.self.String(),
-		SenderNick: cr.nick,
+		SenderNick: cr.Nick,
 	}
 	msgBytes, err := json.Marshal(m)
 	if err != nil {
@@ -114,7 +114,7 @@ func (cr *ChatRoom) readLoop(errCh chan<- error) {
 
 func (cr *ChatRoom) writeInFile(cm *ChatMessage) error {
 	fmt.Println(cm)
-	logEntry := fmt.Sprintf("%s: %s: %s\n", cr.nick, cm.Message, time.Now())
+	logEntry := fmt.Sprintf("%s: %s: %s\n", cr.Nick, cm.Message, time.Now())
 	if _, err := cr.writer.WriteString(logEntry); err != nil {
 		return err
 	}
