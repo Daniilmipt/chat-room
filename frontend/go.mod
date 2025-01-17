@@ -1,4 +1,4 @@
-module social
+module chatroom
 
 go 1.23.4
 

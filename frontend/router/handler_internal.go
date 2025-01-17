@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"social/pkg"
+	"chatroom/pkg"
 	"strings"
 	"sync"
 

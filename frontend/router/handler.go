@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"social/pkg/models"
+	"chatroom/pkg/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
