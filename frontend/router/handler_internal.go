@@ -1,13 +1,13 @@
 package router
 
 import (
+	"chatroom/pkg"
 	"context"
 	"fmt"
 	"io/fs"
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"chatroom/pkg"
 	"strings"
 	"sync"
 
@@ -18,9 +18,8 @@ import (
 const maxWorkersFileIter = 10
 
 func (h *ChatHandler) sendMessageInOut() {
-
 	for msg := range h.msgCh {
-		stdin := h.stdinMap[msg.Room]
+		stdin := h.stdinPool.Get(msg.Message)
 		if stdin == nil {
 			if err := h.joinToRoom(msg.Room, msg.Nick); err != nil {
 				h.logger.Error("fail to join to room",
@@ -28,7 +27,7 @@ func (h *ChatHandler) sendMessageInOut() {
 					zap.Any("room-message", msg),
 				)
 			}
-			stdin = h.stdinMap[msg.Room]
+			stdin = h.stdinPool.Get(msg.Room)
 		}
 
 		if _, err := (*stdin).Write([]byte(msg.Message + "\n")); err != nil {
@@ -63,18 +62,30 @@ func (h *ChatHandler) joinToRoom(room, nick string) error {
 	execPath := getFileExecPath()
 	h.logger.Info("start chat process", zap.String("path", execPath))
 
-	cmd := exec.Command(execPath, "-nick="+nick, "-room="+room, "-host="+h.backCfg.Host, "-port="+h.backCfg.Port)
+	args := []string{
+		"-nick=" + nick, "-room=" + room,
+		"-host=" + h.backCfg.Host, "-port=" + h.backCfg.Port,
+	}
+	if h.isMainer {
+		args = append(args, "-ismainer")
+	} else {
+		args = append(args, "-peerid="+h.backCfg.PeerID)
+	}
+
+	fmt.Println(args)
+	cmd := exec.Command(execPath, args...)
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return fmt.Errorf("error getting StdinPipe: %s", err)
 	}
+	fmt.Println("start cmd")
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("error starting command: %s", err)
 	}
 
-	h.stdinMap[room] = &stdin
+	h.stdinPool.Set(room, &stdin)
 	h.logger.Info("join to chat room", zap.String("room", room), zap.String("nick", nick))
 	return nil
 }

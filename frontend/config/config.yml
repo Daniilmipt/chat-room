@@ -4,3 +4,4 @@ frontend:
 backend:
   host: 0.0.0.0
   port: 8082
+  peer-id: 

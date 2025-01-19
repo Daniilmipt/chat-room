@@ -215,6 +215,12 @@
                     roomInfo.appendChild(roomNameDiv);
                     roomInfo.appendChild(lastMessageDiv);
 
+                    mainer_value = getCookie("is_mainer")
+                    const is_miner = false
+                    if (mainer_value === "true") {
+                        is_miner = true
+                    }
+
                     const enterButton = document.createElement('button');
                     enterButton.classList.add('enter-room');
                     enterButton.textContent = 'Enter';
@@ -223,7 +229,7 @@
                             alert("User nickname not found!");
                             return;
                         }
-                        window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room.room)}`;
+                        window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room.room)}&isminer=${is_miner}`;
                     };
 
                     listItem.appendChild(roomInfo);
@@ -246,6 +252,17 @@
             modal.classList.add('hidden');
         }
 
+        function getCookie(name) {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                const [cookieName, cookieValue] = cookie.split("=");
+                if (cookieName === name) {
+                    return decodeURIComponent(cookieValue);
+                }
+            }
+            return null; // Return null if cookie not found
+        }
+
         async function submitJoinRoom() {
             const room = document.getElementById('roomNameInput').value;
             if (!room) {
@@ -258,8 +275,14 @@
                 return;
             }
 
+            mainer_value = getCookie("is_mainer")
+            const is_miner = false
+            if (mainer_value === "true") {
+                is_miner = true
+            }
+
             try {
-                window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room)}`;
+                window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room)}&isminer=${is_miner}`;
             } catch (error) {
                 console.error("Error joining room:", error);
                 alert("Failed to join the room.");
@@ -274,12 +297,12 @@
 
         async function fetchRoot() {
             try {
-                const response = await fetch("/");
+                const response = await fetch("/clear");
                 if (!response.ok) {
                     throw new Error(`Failed to fetch root: ${response.statusText}`);
                 }
-                sessionStorage.removeItem("user");
                 deleteCookie("user")
+                deleteCookie("is_miner")
                 window.location.href = `/`;
             } catch (error) {
                 console.error("Error fetching root:", error);

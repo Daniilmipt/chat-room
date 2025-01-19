@@ -42,6 +42,7 @@ func main() {
 		authorized.GET("/rooms-last-message", chatHandler.GetRoomsLastMessage)
 		authorized.GET("/messages", chatHandler.GetMessagesFile)
 		authorized.POST("/send-message", chatHandler.SendMessage)
+		authorized.DELETE("/clear", chatHandler.ClearStdin)
 	}
 
 	stop := make(chan os.Signal, 1)
