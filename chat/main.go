@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultHost = "0.0.0.0"
-	defaultPort = "0"
+	defaultPort = "9090"
 )
 
 func parseFlags() (string, string, config.Config) {

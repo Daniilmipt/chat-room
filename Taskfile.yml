@@ -28,7 +28,7 @@ tasks:
     cmds:
       - "{{.CHAT_LINUX_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}}"
 
-  run-chat-exe:
+  run-chat-windows:
     desc: "Run chat application on Windows"
     cmds:
       - "{{.CHAT_WIN_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}}"
@@ -38,7 +38,7 @@ tasks:
     cmds:
       - "export CONFIG_PATH={{.CONFIG_PATH}} && {{.CHATROOM_LINUX_PATH}}"
 
-  run-chatroom-exe:
+  run-chatroom-windows:
     desc: "Run chatroom application on Windows"
     cmds:
       - "export CONFIG_PATH={{.CONFIG_PATH}} && {{.CHATROOM_WIN_PATH}}"
