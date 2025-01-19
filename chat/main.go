@@ -33,7 +33,7 @@ func parseFlags() (string, string, config.Config) {
 }
 
 func messageLogWritter(room string) (*os.File, *bufio.Writer) {
-	filepath := fmt.Sprintf("../messages/%s.log", room)
+	filepath := fmt.Sprintf("./messages/%s.log", room)
 	logFile, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("failed to open room log file: %v", err)

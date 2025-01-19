@@ -58,7 +58,7 @@ func main() {
 		}
 	}()
 
-	if err := os.Mkdir("../messages", os.ModePerm); err != nil {
+	if err := os.Mkdir("./messages", os.ModePerm); err != nil {
 		logger.Info("can not create messages dis", zap.Error(err))
 	}
 

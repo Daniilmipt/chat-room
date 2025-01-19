@@ -100,7 +100,7 @@ func (h *ChatHandler) iterateByMessageFiles(files []fs.DirEntry) map[string]stri
 				return
 			}
 
-			filePath := "../messages/" + f.Name()
+			filePath := "./messages/" + f.Name()
 			lastLine, err := pkg.GetLastLine(filePath)
 			if err != nil {
 				h.logger.Error("error reading last line of file", zap.String("file", f.Name()), zap.Error(err))

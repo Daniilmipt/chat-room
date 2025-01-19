@@ -36,7 +36,7 @@ func NewChatHandler(logger *zap.Logger, msgCh chan models.Messages, backCfg conf
 }
 
 func (h *ChatHandler) GetRoomsLastMessage(c *gin.Context) {
-	files, err := os.ReadDir("../messages")
+	files, err := os.ReadDir("./messages")
 	if err != nil {
 		h.logger.Error("error reading directory with messages", zap.Error(err))
 		c.String(http.StatusInternalServerError, fmt.Errorf("error reading directory with messages: %s", err).Error())
@@ -54,7 +54,7 @@ func (h *ChatHandler) GetMessagesFile(c *gin.Context) {
 		return
 	}
 
-	logFilePath := fmt.Sprintf("../messages/%s.log", room)
+	logFilePath := fmt.Sprintf("./messages/%s.log", room)
 	if _, err := os.Stat(logFilePath); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Errorf("room log file not found: %q", err).Error()})
 		return
