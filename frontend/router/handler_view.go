@@ -44,7 +44,7 @@ func (h *ChatHandler) GetRoomsListView(c *gin.Context) {
 }
 
 func (h *ChatHandler) GetAuthView(c *gin.Context) {
-	data, err := content.ReadFile("index.html")
+	data, err := content.ReadFile("login.html")
 	if err != nil {
 		c.String(http.StatusInternalServerError, "error loading page")
 		return

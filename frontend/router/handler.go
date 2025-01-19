@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-//go:embed index.html room.html room_list.html
+//go:embed login.html room.html room_list.html
 var content embed.FS
 
 type ChatHandler struct {
