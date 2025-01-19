@@ -8,8 +8,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -32,11 +33,17 @@ func parseFlags() (string, string, config.Config) {
 	return room, nick, config.Config{Host: host, Port: port}
 }
 
-func messageLogWritter(room string) (*os.File, *bufio.Writer) {
+func messageLogWritter(room string, logger *zap.Logger) (*os.File, *bufio.Writer) {
+	if err := os.Mkdir("./messages", os.ModePerm); err != nil {
+		logger.Info("can not create messages directory", zap.Error(err))
+		return nil, nil
+	}
+
 	filepath := fmt.Sprintf("./messages/%s.log", room)
 	logFile, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("failed to open room log file: %v", err)
+		logger.Error("failed to open room log file", zap.Error(err))
+		return nil, nil
 	}
 	writer := bufio.NewWriter(logFile)
 
@@ -49,7 +56,7 @@ func main() {
 	logger, f := pkg.SetupLogger()
 	defer f.Close()
 
-	msgF, msgWritter := messageLogWritter(room)
+	msgF, msgWritter := messageLogWritter(room, logger)
 	defer msgF.Close()
 
 	s := service.NewService(logger, cfg)

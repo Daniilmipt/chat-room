@@ -32,23 +32,26 @@ func NewService(logger *zap.Logger, cfg config.Config) *Service {
 
 func (s *Service) Run(ctx context.Context, msgWritter *bufio.Writer, nick, room string) {
 	p2pAddr := fmt.Sprintf("/ip4/%s/tcp/%s", s.host, s.port)
-	h, err := libp2p.New(libp2p.ListenAddrStrings(p2pAddr))
+	host, err := libp2p.New(libp2p.ListenAddrStrings(p2pAddr))
 	if err != nil {
 		s.logger.Fatal("failed to create libp2p Host",
 			zap.Error(err),
 		)
 	}
+	s.logger = s.logger.With(zap.Any("p2p-host", host))
 
-	ps, err := pubsub.NewGossipSub(ctx, h)
+	fmt.Println(host.Addrs())
+
+	ps, err := pubsub.NewGossipSub(ctx, host)
 	if err != nil {
 		s.logger.Fatal("failed to create PubSub service",
-			zap.Any("p2p-host", h),
+			zap.Any("p2p-host", host),
 			zap.Error(err),
 		)
 	}
-	if err := setupDiscovery(h); err != nil {
+	if err := setupDiscovery(host); err != nil {
 		s.logger.Fatal("failed to setup mDNS discovery",
-			zap.Any("p2p-host", h),
+			zap.Any("p2p-host", host),
 			zap.Error(err),
 		)
 	}
@@ -56,11 +59,11 @@ func (s *Service) Run(ctx context.Context, msgWritter *bufio.Writer, nick, room 
 	errCh := make(chan error)
 	defer close(errCh)
 
-	cr := pkg.JoinChatRoom(ctx, ps, h.ID(), nick, room, msgWritter, errCh)
+	cr := pkg.JoinChatRoom(ctx, ps, host.ID(), nick, room, msgWritter, errCh)
 	go func() {
 		for err := range errCh {
 			s.logger.Error("failed to join in chat room",
-				zap.Any("p2p-host", h),
+				zap.Any("p2p-host", host),
 				zap.String("nick", nick),
 				zap.String("room", room),
 				zap.Error(err),
