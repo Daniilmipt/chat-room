@@ -7,25 +7,31 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const configPath = "./config/config.yml"
+const (
+	CONFIG_ENV = "CONFIG_PATH"
+	configPath = "./config/config.yml"
+)
 
 type Config struct {
-	Frontend FrontConfig `yaml:"frontend"`
-	Backend BackendConfig `yaml:"backend"`
+	Frontend FrontConfig   `yaml:"frontend"`
+	Backend  BackendConfig `yaml:"backend"`
 }
 
 type FrontConfig struct {
 	Port string `yaml:"port"`
-
 }
 
 type BackendConfig struct {
 	Host string `yaml:"host"`
 	Port string `yaml:"port"`
-
 }
 
 func ParseConfig() Config {
+	configPath := os.Getenv(CONFIG_ENV)
+	if configPath == "" {
+		configPath = configPath
+	}
+
 	filename, _ := filepath.Abs(configPath)
 	yamlFile, err := os.ReadFile(filename)
 	if err != nil {
