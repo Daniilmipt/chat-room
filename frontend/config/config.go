@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -8,8 +9,8 @@ import (
 )
 
 const (
-	CONFIG_ENV = "CONFIG_PATH"
-	configPath = "./config/config.yml"
+	CONFIG_ENV        = "CONFIG_PATH"
+	configPathDefault = "./config/config.yml"
 )
 
 type Config struct {
@@ -29,10 +30,12 @@ type BackendConfig struct {
 func ParseConfig() Config {
 	configPath := os.Getenv(CONFIG_ENV)
 	if configPath == "" {
-		configPath = configPath
+		configPath = configPathDefault
 	}
 
 	filename, _ := filepath.Abs(configPath)
+	fmt.Println(filename)
+	fmt.Println(configPath)
 	yamlFile, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
