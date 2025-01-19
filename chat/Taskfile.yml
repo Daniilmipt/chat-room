@@ -1,8 +1,8 @@
 version: '3'
 
 vars:
-  CHAT_LINUX_PATH: ./chat/chat_linux
-  CHAT_WIN_PATH: ./chat/chat.exe
+  CHAT_LINUX_PATH: ./chat_linux
+  CHAT_WIN_PATH: ./chat.exe
   CHAT_NICK: test
   CHAT_ROOM: test
 
@@ -10,8 +10,8 @@ tasks:
   build-chat:
     desc: "Build chat application on Linux and Windows"
     cmds:
-      - cd chat; go build -o chat_linux
-      - cd chat; GOOS=windows GOARCH=amd64 go build -o chat.exe
+      - go build -o chat_linux
+      - GOOS=windows GOARCH=amd64 go build -o chat.exe
 
   run-chat-linux:
     desc: "Run chat application on Linux"
