@@ -1,6 +1,6 @@
 # Chatroom Application
 ## Overview
-This is a decentralized chatroom application built with Golang and leveraging the `chat` application which uses `go-libp2p-pubsub` library for peer-to-peer communication. The `frontend` package provides an HTTP interface for managing chatrooms, handling user sessions, and serving the front-end views for interacting with the chat system.
+This is a decentralized (децентрализованное) chatroom application built with Golang and leveraging the `chat` application which uses `go-libp2p-pubsub` library for peer-to-peer communication. The `frontend` package provides an HTTP interface for managing chatrooms, handling user sessions, and serving the front-end views for interacting with the chat system.
 
 ## Example Workflow
 1. Start the first instance of the application:
