@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"chat/config"
-	"chat/internal/mainer"
+	"chat/internal/node"
 	"chat/internal/peer"
 	"chat/internal/pkg"
 	"context"
@@ -17,7 +17,7 @@ import (
 func parseFlags() (string, string, bool, config.Config) {
 	var (
 		nick, room, host, port, peerID string
-		isMainer                       bool
+		isNode                         bool
 	)
 
 	flag.StringVar(&nick, "nick", "", "room to use in chat. must be not empty")
@@ -25,11 +25,11 @@ func parseFlags() (string, string, bool, config.Config) {
 	flag.StringVar(&host, "host", "", "host which we will listen p2p")
 	flag.StringVar(&port, "port", "", "port for listening p2p")
 	flag.StringVar(&peerID, "peerid", "", "peerID for listening p2p")
-	flag.BoolVar(&isMainer, "ismainer", false, "do we run chat as a mainer, which you can connect to")
+	flag.BoolVar(&isNode, "node", false, "do we run chat as a node, which you can connect to")
 
 	flag.Parse()
 
-	return room, nick, isMainer, config.Config{Host: host, Port: port, PeerID: peerID}
+	return room, nick, isNode, config.Config{Host: host, Port: port, PeerID: peerID}
 }
 
 func messageLogWritter(room string, logger *zap.Logger) (*os.File, *bufio.Writer) {
@@ -53,7 +53,7 @@ type ChatService interface {
 }
 
 func main() {
-	room, nick, isMainer, cfg := parseFlags()
+	room, nick, isNode, cfg := parseFlags()
 
 	logger, f := pkg.SetupLogger()
 	defer f.Close()
@@ -62,8 +62,8 @@ func main() {
 	defer msgF.Close()
 
 	var s ChatService
-	if isMainer {
-		s = mainer.NewService(logger, cfg.Host, cfg.Port)
+	if isNode {
+		s = node.NewService(logger, cfg.Host, cfg.Port)
 	} else {
 		s = peer.NewService(logger, cfg.Host, cfg.Port, cfg.PeerID)
 	}

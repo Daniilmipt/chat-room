@@ -63,23 +63,19 @@ func (h *ChatHandler) joinToRoom(room, nick string) error {
 	h.logger.Info("start chat process", zap.String("path", execPath))
 
 	args := []string{
-		"-nick=" + nick, "-room=" + room,
-		"-host=" + h.backCfg.Host, "-port=" + h.backCfg.Port,
-	}
-	if h.isMainer {
-		args = append(args, "-ismainer")
-	} else {
-		args = append(args, "-peerid="+h.backCfg.PeerID)
+		"-nick=" + nick,
+		"-room=" + room,
+		"-host=" + h.backCfg.Host,
+		"-port=" + h.backCfg.Port,
+		"-peerid=" + h.backCfg.PeerID,
 	}
 
-	fmt.Println(args)
 	cmd := exec.Command(execPath, args...)
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return fmt.Errorf("error getting StdinPipe: %s", err)
 	}
-	fmt.Println("start cmd")
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("error starting command: %s", err)
@@ -87,6 +83,7 @@ func (h *ChatHandler) joinToRoom(room, nick string) error {
 
 	h.stdinPool.Set(room, &stdin)
 	h.logger.Info("join to chat room", zap.String("room", room), zap.String("nick", nick))
+	
 	return nil
 }
 

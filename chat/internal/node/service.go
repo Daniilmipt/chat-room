@@ -1,4 +1,4 @@
-package mainer
+package node
 
 import (
 	"bufio"

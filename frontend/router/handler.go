@@ -20,7 +20,6 @@ var content embed.FS
 type ChatHandler struct {
 	logger    *zap.Logger
 	msgCh     chan models.Messages
-	isMainer  bool
 	stdinPool pkg.StdinPool
 	backCfg   config.BackendConfig
 }

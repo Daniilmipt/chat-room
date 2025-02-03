@@ -131,9 +131,6 @@
 
                 <button type="submit">Join Room</button>
             </form>
-            <form id="chatSetupForm3">
-                <button type="submit">Join Room as Mainer</button>
-            </form>
         </div>
 
         <div class="form-wrapper">
@@ -172,22 +169,6 @@
             }
         }
 
-        function handleFormMainerSubmit(event, formId) {
-            event.preventDefault();
-            const room = document.getElementById(`room${formId}`).value;
-            const nick = document.getElementById(`nick${formId}`).value;
-
-            sessionStorage.setItem("user", String(nick));
-            setCookie('user', String(nick), 1200);
-
-            try {
-                window.location.href = `/room?nick=${encodeURIComponent(nick)}&room=${encodeURIComponent(room)}&ismainer=true`;
-            } catch (error) {
-                console.error("Error starting chat or redirecting:", error);
-                alert("Failed to start chat or redirect to the chat room.");
-            }
-        }
-
         function handleFormRoomSubmit(event, formId) {
             event.preventDefault();
             const nick = document.getElementById(`nick${formId}`).value;
@@ -205,10 +186,6 @@
 
         document.getElementById("chatSetupForm1").addEventListener("submit", function(event) {
             handleFormSubmit(event, 1);
-        });
-
-        document.getElementById("chatSetupForm3").addEventListener("submit", function(event) {
-            handleFormMainerSubmit(event, 1);
         });
 
         document.getElementById("chatSetupForm2").addEventListener("submit", function(event) {

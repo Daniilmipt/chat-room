@@ -215,12 +215,6 @@
                     roomInfo.appendChild(roomNameDiv);
                     roomInfo.appendChild(lastMessageDiv);
 
-                    mainer_value = getCookie("is_mainer")
-                    const is_miner = false
-                    if (mainer_value === "true") {
-                        is_miner = true
-                    }
-
                     const enterButton = document.createElement('button');
                     enterButton.classList.add('enter-room');
                     enterButton.textContent = 'Enter';
@@ -229,7 +223,7 @@
                             alert("User nickname not found!");
                             return;
                         }
-                        window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room.room)}&isminer=${is_miner}`;
+                        window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room.room)}`;
                     };
 
                     listItem.appendChild(roomInfo);
@@ -275,14 +269,8 @@
                 return;
             }
 
-            mainer_value = getCookie("is_mainer")
-            const is_miner = false
-            if (mainer_value === "true") {
-                is_miner = true
-            }
-
             try {
-                window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room)}&isminer=${is_miner}`;
+                window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room)}`;
             } catch (error) {
                 console.error("Error joining room:", error);
                 alert("Failed to join the room.");
@@ -297,12 +285,15 @@
 
         async function fetchRoot() {
             try {
-                const response = await fetch("/clear");
+                const response = await fetch("/clear", {
+                    method: "DELETE",
+                });
+        
                 if (!response.ok) {
                     throw new Error(`Failed to fetch root: ${response.statusText}`);
                 }
+
                 deleteCookie("user")
-                deleteCookie("is_miner")
                 window.location.href = `/`;
             } catch (error) {
                 console.error("Error fetching root:", error);
