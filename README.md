@@ -27,15 +27,15 @@ This is a decentralized (децентрализованное) chatroom applicat
 
 ### Test Running
 
-You can go to folder `running` and `running_copy` and you will have 2 users in your net:
+1. You need to setup `running/config/config.yml` and `running_copy/config/config.yml` by equal values. Fill correct host, port and peerid for launched chat node (see [backend README](./chat/README.md) to know more)
 
-1. 
+2. Go to folder `running` and `running_copy` and you will have 2 users in your net:
+
    ```bash
    cd running
    ./chatroom
    ```
 
-2. 
    ```bash
    cd running_copy
    ./chatroom
@@ -43,8 +43,9 @@ You can go to folder `running` and `running_copy` and you will have 2 users in y
 
 ### Features
 - Decentralized chatroom communication using `go-libp2p-pubsub`.
+
 - Front-end built with HTML, CSS, and JavaScript.
-- User session management via cookies.
+
 - Live updates for chatroom lists and messages.
 
 ### Submoduls

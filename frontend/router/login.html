@@ -15,15 +15,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            padding: 1rem; /* Add padding for smaller screens */
+            min-height: 100vh;
+            padding: 1rem;
         }
 
         .container {
             display: flex;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            flex-wrap: wrap;
             gap: 20px;
-            justify-content: center; /* Center forms horizontally */
+            justify-content: center;
         }
 
         .form-wrapper {
@@ -32,7 +32,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 320px; /* Limit max width for larger screens */
+            max-width: 320px;
         }
 
         h1 {
@@ -82,16 +82,7 @@
                 font-size: 1.25rem;
             }
 
-            label {
-                font-size: 0.85rem;
-            }
-
-            input {
-                font-size: 0.9rem;
-                padding: 0.7rem;
-            }
-
-            button {
+            input, button {
                 font-size: 0.9rem;
                 padding: 0.7rem;
             }
@@ -106,12 +97,7 @@
                 font-size: 1.1rem;
             }
 
-            input {
-                font-size: 0.85rem;
-                padding: 0.6rem;
-            }
-
-            button {
+            input, button {
                 font-size: 0.85rem;
                 padding: 0.6rem;
             }
@@ -120,24 +106,26 @@
 </head>
 <body>
     <div class="container">
+        <!-- Join Chat Room Form -->
         <div class="form-wrapper">
             <h1>Join a Chat Room</h1>
-            <form id="chatSetupForm1">
-                <label for="room1">Room:</label>
-                <input type="text" id="room1" name="room" required>
+            <form id="joinRoomForm">
+                <label for="room">Room:</label>
+                <input type="text" id="room" name="room" required>
 
-                <label for="nick1">nick:</label>
-                <input type="text" id="nick1" name="nick" required>
+                <label for="nick">Nickname:</label>
+                <input type="text" id="nick" name="nick" required>
 
                 <button type="submit">Join Room</button>
             </form>
         </div>
 
+        <!-- Show Rooms Form -->
         <div class="form-wrapper">
             <h1>Show Rooms</h1>
-            <form id="chatSetupForm2">
-                <label for="nick2">nick:</label>
-                <input type="text" id="nick2" name="nick" required>
+            <form id="showRoomsForm">
+                <label for="nickShow">Nickname:</label>
+                <input type="text" id="nickShow" name="nick" required>
 
                 <button type="submit">Show Rooms</button>
             </form>
@@ -145,51 +133,35 @@
     </div>
 
     <script>
+        // Helper function to set a cookie
         function setCookie(name, value, ttlInSeconds) {
             const date = new Date();
             date.setTime(date.getTime() + ttlInSeconds * 1000);
-            const expires = "expires=" + date.toUTCString();
-            document.cookie = `${name}=${value}; ${expires}; path=/`;
+            document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
         }
 
-        function handleFormSubmit(event, formId) {
+        // Handle Join Room Form Submission
+        document.getElementById("joinRoomForm").addEventListener("submit", function(event) {
             event.preventDefault();
-            const room = document.getElementById(`room${formId}`).value;
-            const nick = document.getElementById(`nick${formId}`).value;
+            const room = document.getElementById("room").value;
+            const nick = document.getElementById("nick").value;
 
-            sessionStorage.setItem("user", String(nick));
-            setCookie('user', String(nick), 1200);
-            setCookie('is_mainer', String(nick), 1200);
+            sessionStorage.setItem("user", nick);
+            setCookie('user', nick, 1200);
+            setCookie('is_miner', nick, 1200);
 
-            try {
-                window.location.href = `/room?nick=${encodeURIComponent(nick)}&room=${encodeURIComponent(room)}&ismainer=false`;
-            } catch (error) {
-                console.error("Error starting chat or redirecting:", error);
-                alert("Failed to start chat or redirect to the chat room.");
-            }
-        }
-
-        function handleFormRoomSubmit(event, formId) {
-            event.preventDefault();
-            const nick = document.getElementById(`nick${formId}`).value;
-
-            sessionStorage.setItem("user", String(nick));
-            setCookie('user', String(nick), 1200);
-
-            try {
-                window.location.href = "/rooms-list";
-            } catch (error) {
-                console.error("Error starting chat or redirecting:", error);
-                alert("Failed to start chat or redirect to the chat room.");
-            }
-        }
-
-        document.getElementById("chatSetupForm1").addEventListener("submit", function(event) {
-            handleFormSubmit(event, 1);
+            window.location.href = `/room?nick=${encodeURIComponent(nick)}&room=${encodeURIComponent(room)}&isminer=false`;
         });
 
-        document.getElementById("chatSetupForm2").addEventListener("submit", function(event) {
-            handleFormRoomSubmit(event, 2);
+        // Handle Show Rooms Form Submission
+        document.getElementById("showRoomsForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const nick = document.getElementById("nickShow").value;
+
+            sessionStorage.setItem("user", nick);
+            setCookie('user', nick, 1200);
+
+            window.location.href = "/rooms-list";
         });
     </script>
 </body>

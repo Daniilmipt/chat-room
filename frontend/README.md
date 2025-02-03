@@ -17,10 +17,14 @@ This is a decentralized chatroom application built with Golang and leveraging th
    git clone <repository-url>
    cd chatroom/server
    ```
+   
 2. Build the application:
    ```bash
    go build -o chatroom
    ```
+
+3. Setup `config/config.yml`. Fill correct host, port and peerid for launched chat node (see [backend README](./chat/README.md) to know more)
+
 3. Run the server:
    ```bash
    ./chatroom

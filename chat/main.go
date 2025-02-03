@@ -20,8 +20,8 @@ func parseFlags() (string, string, bool, config.Config) {
 		isNode                         bool
 	)
 
-	flag.StringVar(&nick, "nick", "", "room to use in chat. must be not empty")
-	flag.StringVar(&room, "room", "", "name of chat room to join. must be not empty")
+	flag.StringVar(&nick, "nick", "anonymous", "room to use in chat. must be not empty")
+	flag.StringVar(&room, "room", "main", "name of chat room to join. must be not empty")
 	flag.StringVar(&host, "host", "", "host which we will listen p2p")
 	flag.StringVar(&port, "port", "", "port for listening p2p")
 	flag.StringVar(&peerID, "peerid", "", "peerID for listening p2p")
