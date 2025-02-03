@@ -2,10 +2,10 @@ package router
 
 import (
 	"chatroom/config"
+	"chatroom/pkg"
 	"chatroom/pkg/models"
 	"embed"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
@@ -18,20 +18,20 @@ import (
 var content embed.FS
 
 type ChatHandler struct {
-	logger   *zap.Logger
-	msgCh    chan models.Messages
-	stdinMap map[string]*io.WriteCloser
-	backCfg  config.BackendConfig
+	logger    *zap.Logger
+	msgCh     chan models.Messages
+	stdinPool pkg.StdinPool
+	backCfg   config.BackendConfig
 }
 
 func NewChatHandler(logger *zap.Logger, msgCh chan models.Messages, backCfg config.BackendConfig) *ChatHandler {
 	logger = logger.With(zap.String("id", uuid.New().String()))
 
 	return &ChatHandler{
-		logger:   logger,
-		msgCh:    msgCh,
-		stdinMap: make(map[string]*io.WriteCloser),
-		backCfg:  backCfg,
+		stdinPool: pkg.NewStdinConnection(),
+		logger:    logger,
+		msgCh:     msgCh,
+		backCfg:   backCfg,
 	}
 }
 
@@ -76,4 +76,8 @@ func (h *ChatHandler) SendMessage(c *gin.Context) {
 	}
 
 	h.msgCh <- request
+}
+
+func (h *ChatHandler) ClearStdin(c *gin.Context) {
+	h.stdinPool.Clear()
 }

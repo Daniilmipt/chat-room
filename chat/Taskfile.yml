@@ -10,7 +10,7 @@ tasks:
   build-chat:
     desc: "Build chat application on Linux and Windows"
     cmds:
-      - go build -o chat_linux
+      - GOOS=linux GOARCH=amd64 go build -o chat_linux
       - GOOS=windows GOARCH=amd64 go build -o chat.exe
 
   run-chat-linux:
@@ -18,7 +18,17 @@ tasks:
     cmds:
       - "{{.CHAT_LINUX_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}}"
 
+  run-chat-linux-node:
+    desc: "Run chat application as node on Linux"
+    cmds:
+      - "{{.CHAT_LINUX_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}} -node"
+
   run-chat-windows:
     desc: "Run chat application on Windows"
     cmds:
       - "{{.CHAT_WIN_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}}"
+
+  run-chat-windows-node:
+    desc: "Run chat application as node on Windows"
+    cmds:
+      - "{{.CHAT_WIN_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}} -node"

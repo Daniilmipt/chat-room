@@ -23,8 +23,9 @@ type FrontConfig struct {
 }
 
 type BackendConfig struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
+	Host   string `yaml:"host"`
+	Port   string `yaml:"port"`
+	PeerID string `yaml:"peer-id"`
 }
 
 func ParseConfig() Config {

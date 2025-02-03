@@ -183,7 +183,7 @@
 
         async function loadRooms() {
             try {
-                const response = await fetch(`/rooms-last-message`);
+                const response = await fetch(`/api/rooms-last-message`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch room messages: ${response.statusText}`);
                 }
@@ -246,6 +246,17 @@
             modal.classList.add('hidden');
         }
 
+        function getCookie(name) {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                const [cookieName, cookieValue] = cookie.split("=");
+                if (cookieName === name) {
+                    return decodeURIComponent(cookieValue);
+                }
+            }
+            return null; // Return null if cookie not found
+        }
+
         async function submitJoinRoom() {
             const room = document.getElementById('roomNameInput').value;
             if (!room) {
@@ -274,11 +285,14 @@
 
         async function fetchRoot() {
             try {
-                const response = await fetch("/");
+                const response = await fetch("/api/clear", {
+                    method: "DELETE",
+                });
+        
                 if (!response.ok) {
                     throw new Error(`Failed to fetch root: ${response.statusText}`);
                 }
-                sessionStorage.removeItem("user");
+
                 deleteCookie("user")
                 window.location.href = `/`;
             } catch (error) {
