@@ -183,7 +183,7 @@
 
         async function loadRooms() {
             try {
-                const response = await fetch(`/rooms-last-message`);
+                const response = await fetch(`/api/rooms-last-message`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch room messages: ${response.statusText}`);
                 }
@@ -285,7 +285,7 @@
 
         async function fetchRoot() {
             try {
-                const response = await fetch("/clear", {
+                const response = await fetch("/api/clear", {
                     method: "DELETE",
                 });
         

@@ -36,14 +36,14 @@ func main() {
 
 	authorized := router.Group("/")
 	authorized.Use(checkNickMiddleware())
-	{
-		authorized.GET("/room", chatHandler.GetRoomView)
-		authorized.GET("/rooms-list", chatHandler.GetRoomsListView)
-		authorized.GET("/rooms-last-message", chatHandler.GetRoomsLastMessage)
-		authorized.GET("/messages", chatHandler.GetMessagesFile)
-		authorized.POST("/send-message", chatHandler.SendMessage)
-		authorized.DELETE("/clear", chatHandler.ClearStdin)
-	}
+	authorized.GET("/room", chatHandler.GetRoomView)
+	authorized.GET("/rooms-list", chatHandler.GetRoomsListView)
+
+	internalApi := authorized.Group("/api")
+	internalApi.GET("/rooms-last-message", chatHandler.GetRoomsLastMessage)
+	internalApi.GET("/messages", chatHandler.GetMessagesFile)
+	internalApi.POST("/send-message", chatHandler.SendMessage)
+	internalApi.DELETE("/clear", chatHandler.ClearStdin)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

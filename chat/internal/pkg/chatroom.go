@@ -14,14 +14,13 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 )
 
-// ChatRoomBufSize is the number of incoming messages to buffer for each topic.
-const ChatRoomBufSize = 128
+const (
+	chatRoomBufSize = 128
 
-// ChatRoom represents a subscription to a single PubSub topic. Messages
-// can be published to the topic with ChatRoom.Publish, and received
-// messages are pushed to the Messages channel.
+	topicNameHeader = "chat-room"
+)
+
 type ChatRoom struct {
-	// Messages is a channel of messages received from other peers in the chat room
 	Messages chan *ChatMessage
 
 	ctx   context.Context
@@ -36,22 +35,18 @@ type ChatRoom struct {
 	writer *bufio.Writer
 }
 
-// ChatMessage gets converted to/from JSON and sent in the body of pubsub messages.
 type ChatMessage struct {
 	Message    string
 	SenderID   string
 	SenderNick string
 }
 
-// JoinChatRoom tries to subscribe to the PubSub topic for the room name, returning
-// a ChatRoom on success.
 func JoinChatRoom(ctx context.Context, ps *pubsub.PubSub, selfID peer.ID, nick string, room string, writer *bufio.Writer, errCh chan<- error) *ChatRoom {
-	topic, err := ps.Join(topicName(room))
+	topic, err := ps.Join("chat-room:" + room)
 	if err != nil {
 		return nil
 	}
 
-	// and subscribe to it
 	sub, err := topic.Subscribe()
 	if err != nil {
 		return nil
@@ -65,7 +60,7 @@ func JoinChatRoom(ctx context.Context, ps *pubsub.PubSub, selfID peer.ID, nick s
 		self:     selfID,
 		Nick:     nick,
 		Room:     room,
-		Messages: make(chan *ChatMessage, ChatRoomBufSize),
+		Messages: make(chan *ChatMessage, chatRoomBufSize),
 		writer:   writer,
 	}
 
@@ -73,7 +68,6 @@ func JoinChatRoom(ctx context.Context, ps *pubsub.PubSub, selfID peer.ID, nick s
 	return cr
 }
 
-// Publish sends a message to the pubsub topic.
 func (cr *ChatRoom) Publish(message string) error {
 	m := ChatMessage{
 		Message:    message,
@@ -128,7 +122,7 @@ func (cr *ChatRoom) writeInFile(cm *ChatMessage) error {
 }
 
 func topicName(room string) string {
-	return "chat-room:" + room
+	return topicNameHeader + ":" + room
 }
 
 func SendMessage(cr *ChatRoom, lgr *zap.Logger) {

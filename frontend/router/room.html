@@ -273,7 +273,7 @@
         const roomMessages = {};
         async function loadMessages() {
             try {
-                const response = await fetch(`/messages?room=${room}`, {
+                const response = await fetch(`/api/messages?room=${room}`, {
                     headers: {
                         'Cache-Control': 'no-cache',
                         'Pragma': 'no-cache',
@@ -327,7 +327,7 @@
             if (!message) return;
 
             try {
-                await fetch(`/send-message`, {
+                await fetch(`/api/send-message`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

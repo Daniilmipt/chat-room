@@ -13,7 +13,6 @@ func GetLastLine(filePath string) (string, error) {
 	}
 	defer file.Close()
 
-	// Read the file line by line and store the last line
 	var lastLine string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
