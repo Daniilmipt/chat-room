@@ -8,7 +8,7 @@ import (
 )
 
 func (h *ChatHandler) GetRoomView(c *gin.Context) {
-	go h.sendMessageInOut()
+	go h.sendMessageInOut(c)
 
 	room := c.Query("room")
 	nick := c.Query("nick")
@@ -17,11 +17,9 @@ func (h *ChatHandler) GetRoomView(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": errors.New("missing room or nick").Error()})
 	}
 
-	if h.stdinMap[room] == nil {
-		if err := h.joinToRoom(room, nick); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+	if err := h.joinToRoom(c, room); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	data, err := content.ReadFile("room.html")

@@ -1,11 +1,13 @@
 package router
 
 import (
+	"chatroom/chat/api"
+	apiconfig "chatroom/chat/config"
+	"chatroom/chat/pkg"
 	"chatroom/config"
 	"chatroom/pkg/models"
 	"embed"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
@@ -18,20 +20,24 @@ import (
 var content embed.FS
 
 type ChatHandler struct {
-	logger   *zap.Logger
-	msgCh    chan models.Messages
-	stdinMap map[string]*io.WriteCloser
-	backCfg  config.BackendConfig
+	logger  *zap.Logger
+	msgCh   chan models.Messages
+	roomChMap map[string]<-chan *pkg.ChatMessage
+	backCfg config.BackendConfig
+
+	api api.Handler
 }
 
 func NewChatHandler(logger *zap.Logger, msgCh chan models.Messages, backCfg config.BackendConfig) *ChatHandler {
 	logger = logger.With(zap.String("id", uuid.New().String()))
+	api := api.NewHandler(logger, apiconfig.Config{Host: backCfg.Host, Port: backCfg.Port})
 
 	return &ChatHandler{
-		logger:   logger,
-		msgCh:    msgCh,
-		stdinMap: make(map[string]*io.WriteCloser),
-		backCfg:  backCfg,
+		logger:  logger,
+		msgCh:   msgCh,
+		roomChMap: make(map[string]<-chan *pkg.ChatMessage),
+		backCfg: backCfg,
+		api:     api,
 	}
 }
 

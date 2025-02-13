@@ -31,28 +31,6 @@ func NewService(logger *zap.Logger, cfg config.Config) *Service {
 }
 
 func (s *Service) Run(ctx context.Context, msgWritter *bufio.Writer, nick, room string) {
-	// p2pAddr := fmt.Sprintf("/ip4/%s/tcp/%s", s.host, s.port)
-
-	// host, err := libp2p.New()
-	// if err != nil {
-	// 	log.Fatalf("Failed to create libp2p Host: %v", err)
-	// }
-
-	// serverMA, err := multiaddr.NewMultiaddr(p2pAddr)
-	// if err != nil {
-	// 	log.Fatalf("Invalid server address: %v", err)
-	// }
-
-	// serverInfo, err := peer.AddrInfoFromP2pAddr(serverMA)
-	// if err != nil {
-	// 	log.Fatalf("Failed to parse server address: %v", err)
-	// }
-
-	// if err := host.Connect(context.Background(), *serverInfo); err != nil {
-	// 	log.Fatalf("Failed to connect to server: %v", err)
-	// }
-	// fmt.Printf("Connected to server: %s\n", serverInfo.ID.ShortString())
-
 	p2pAddr := fmt.Sprintf("/ip4/%s/tcp/%s", s.host, s.port)
 	host, err := libp2p.New(libp2p.ListenAddrStrings(p2pAddr))
 	if err != nil {

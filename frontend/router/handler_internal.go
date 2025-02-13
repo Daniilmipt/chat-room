@@ -1,13 +1,10 @@
 package router
 
 import (
-	"context"
-	"fmt"
-	"io/fs"
-	"os/exec"
-	"path/filepath"
-	"runtime"
 	"chatroom/pkg"
+	"context"
+	"io/fs"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -17,65 +14,18 @@ import (
 
 const maxWorkersFileIter = 10
 
-func (h *ChatHandler) sendMessageInOut() {
-
+func (h *ChatHandler) sendMessageInOut(ctx context.Context) {
 	for msg := range h.msgCh {
-		stdin := h.stdinMap[msg.Room]
-		if stdin == nil {
-			if err := h.joinToRoom(msg.Room, msg.Nick); err != nil {
-				h.logger.Error("fail to join to room",
-					zap.Error(err),
-					zap.Any("room-message", msg),
-				)
-			}
-			stdin = h.stdinMap[msg.Room]
-		}
-
-		if _, err := (*stdin).Write([]byte(msg.Message + "\n")); err != nil {
-			h.logger.Error("fail to write message to chat",
-				zap.Error(err),
-				zap.Any("room-message", msg),
-			)
-		}
+		h.api.SendMessage(ctx, msg.Room, msg.Nick, msg.Message)
 	}
 }
 
-func getFileExecPath() string {
-	var executable string
-	switch runtime.GOOS {
-	case "windows":
-		executable = "chat.exe"
-	case "darwin":
-		if runtime.GOARCH == "arm64" {
-			executable = "chat_mac_arm"
-		} else {
-			executable = "chat_mac"
+func (h *ChatHandler) joinToRoom(ctx context.Context, room string) error {
+	if _, ok := h.roomChMap[room]; !ok {
+		if err := h.api.JoinRoom(ctx, room); err != nil {
+			return err
 		}
-	case "linux":
-		executable = "chat_linux"
-	default:
-		panic("Unsupported operating system")
 	}
-	return "../chat/" + executable
-}
-
-func (h *ChatHandler) joinToRoom(room, nick string) error {
-	execPath := getFileExecPath()
-	h.logger.Info("start chat process", zap.String("path", execPath))
-
-	cmd := exec.Command(execPath, "-nick="+nick, "-room="+room, "-host="+h.backCfg.Host, "-port="+h.backCfg.Port)
-
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return fmt.Errorf("error getting StdinPipe: %s", err)
-	}
-
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("error starting command: %s", err)
-	}
-
-	h.stdinMap[room] = &stdin
-	h.logger.Info("join to chat room", zap.String("room", room), zap.String("nick", nick))
 	return nil
 }
 
