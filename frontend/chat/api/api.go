@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"weak"
 
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -23,7 +24,7 @@ type Params struct {
 }
 
 type Handler struct {
-	cr map[string]*pkg.ChatRoom
+	cr map[string]weak.Pointer[pkg.ChatRoom]
 
 	pubsub *pubsub.PubSub
 	host   host.Host
@@ -47,12 +48,12 @@ func NewHandler(logger *zap.Logger, cfg config.Config) Handler {
 		pubsub: pubsub,
 		host:   host,
 		logger: logger,
-		cr:     make(map[string]*pkg.ChatRoom),
+		cr:     make(map[string]weak.Pointer[pkg.ChatRoom]),
 	}
 }
 
 func (h *Handler) JoinRoom(ctx context.Context, room, nick string) error {
-	if _, ok := h.cr[room]; ok {
+	if crPtr, ok := h.cr[room]; ok && crPtr.Value() != nil {
 		return nil
 	}
 
@@ -71,30 +72,34 @@ func (h *Handler) JoinRoom(ctx context.Context, room, nick string) error {
 		return err
 	}
 
-	h.cr[room] = cr
+	h.cr[room] = weak.Make(cr)
 	return nil
 }
 
 func (h *Handler) SendMessage(ctx context.Context, room, nick string, message []byte) {
+	logger := h.logger.With(zap.String("room", room), zap.String("nick", nick))
+
 	cr, ok := h.cr[room]
-	if !ok {
+	if !ok || cr.Value() == nil {
 		h.JoinRoom(ctx, room, nick)
 	}
 
 	cr, ok = h.cr[room]
-	if !ok {
-		h.logger.Error("chat room not founded", zap.String("room", room), zap.String("nick", nick))
+	if !ok || cr.Value() == nil {
+		logger.Error("chat room not founded or was unsubscribed")
 	}
 
-	cr.SendMessage(ctx, h.logger, nick, message)
+	cr.Value().SendMessage(ctx, h.logger, nick, message)
 }
 
 func (h *Handler) Clear() {
 	for _, cr := range h.cr {
-		cr.Sub.Cancel()
-		cr.Topic.Close()
+		if crPtr := cr.Value(); crPtr != nil {
+			crPtr.Sub.Cancel()
+			crPtr.Topic.Close()
+		}
 	}
-	h.cr = make(map[string]*pkg.ChatRoom)
+	h.cr = make(map[string]weak.Pointer[pkg.ChatRoom])
 }
 
 func messageLogWritter(room string) (*os.File, *bufio.Writer, error) {
