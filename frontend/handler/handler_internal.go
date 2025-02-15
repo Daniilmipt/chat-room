@@ -1,4 +1,4 @@
-package router
+package handler
 
 import (
 	"chatroom/pkg"
@@ -18,15 +18,6 @@ func (h *ChatHandler) sendMessageInOut(ctx context.Context) {
 	for msg := range h.msgCh {
 		h.api.SendMessage(ctx, msg.Room, msg.Nick, msg.Message)
 	}
-}
-
-func (h *ChatHandler) joinToRoom(ctx context.Context, room string) error {
-	if _, ok := h.roomChMap[room]; !ok {
-		if err := h.api.JoinRoom(ctx, room); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (h *ChatHandler) iterateByMessageFiles(files []fs.DirEntry) map[string]string {

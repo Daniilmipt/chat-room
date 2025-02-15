@@ -24,8 +24,8 @@ type ChatRoom struct {
 	Messages chan *ChatMessage
 
 	ps    *pubsub.PubSub
-	topic *pubsub.Topic
-	sub   *pubsub.Subscription
+	Topic *pubsub.Topic
+	Sub   *pubsub.Subscription
 
 	self peer.ID
 	Room string
@@ -39,7 +39,7 @@ type ChatMessage struct {
 	SenderNick string
 }
 
-func JoinChatRoom(ctx context.Context, logger *zap.Logger, ps *pubsub.PubSub, selfID peer.ID, room string, writer *bufio.Writer) (*ChatRoom, error) {
+func JoinChatRoom(ctx context.Context, logger *zap.Logger, ps *pubsub.PubSub, selfID peer.ID, room, nick string, writer *bufio.Writer) (*ChatRoom, error) {
 	topic, err := ps.Join(topicName(room))
 	if err != nil {
 		return nil, err
@@ -52,12 +52,13 @@ func JoinChatRoom(ctx context.Context, logger *zap.Logger, ps *pubsub.PubSub, se
 
 	cr := &ChatRoom{
 		ps:       ps,
-		topic:    topic,
-		sub:      sub,
+		Topic:    topic,
+		Sub:      sub,
 		self:     selfID,
 		Room:     room,
 		Messages: make(chan *ChatMessage, ChatRoomBufSize),
 		writer:   writer,
+		Nick:     nick,
 	}
 
 	go cr.readLoop(ctx, logger)
@@ -73,16 +74,21 @@ func (cr *ChatRoom) Publish(ctx context.Context, message []byte) error {
 	if err != nil {
 		return err
 	}
-	return cr.topic.Publish(ctx, msgBytes)
+	return cr.Topic.Publish(ctx, msgBytes)
 }
 
 func (cr *ChatRoom) readLoop(ctx context.Context, logger *zap.Logger) {
 	defer close(cr.Messages)
 
 	for {
-		msg, err := cr.sub.Next(ctx)
-		if err != nil {
+		msg, err := cr.Sub.Next(ctx)
+		if err != nil { // TODO error "subrscription canceled"
 			logger.Error("failed to read next message in room", zap.Error(err))
+			return
+		}
+
+		if msg == nil {
+			logger.Error("get nil message from topic", zap.Any("chat_room", cr))
 			return
 		}
 
@@ -118,7 +124,7 @@ func (cr *ChatRoom) writeInFile(cm *ChatMessage) error {
 	return nil
 }
 
-func (cr *ChatRoom) SendMessage(ctx context.Context, logger *zap.Logger, message []byte) {
+func (cr *ChatRoom) SendMessage(ctx context.Context, logger *zap.Logger, nick string, message []byte) {
 	loggerNew := logger.With(zap.String("nick", cr.Nick), zap.String("room", cr.Room))
 
 	loggerNew.Info("received message", zap.ByteString("message", message))

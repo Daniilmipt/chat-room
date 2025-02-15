@@ -43,14 +43,19 @@ func NewHandler(logger *zap.Logger, cfg config.Config) Handler {
 		logger.Error("failed to get pubsub", zap.Error(err), zap.Any("p2p-host", host))
 	}
 
-	return Handler{pubsub: pubsub,
+	return Handler{
+		pubsub: pubsub,
 		host:   host,
 		logger: logger,
 		cr:     make(map[string]*pkg.ChatRoom),
 	}
 }
 
-func (h *Handler) JoinRoom(ctx context.Context, room string) error {
+func (h *Handler) JoinRoom(ctx context.Context, room, nick string) error {
+	if _, ok := h.cr[room]; ok {
+		return nil
+	}
+
 	f, w, err := messageLogWritter(room)
 	if err != nil {
 		h.logger.Error("failed to create message logs file", zap.Error(err))
@@ -60,7 +65,7 @@ func (h *Handler) JoinRoom(ctx context.Context, room string) error {
 	h.msgFile = f
 	h.writer = w
 
-	cr, err := pkg.JoinChatRoom(ctx, h.logger, h.pubsub, h.host.ID(), room, h.writer)
+	cr, err := pkg.JoinChatRoom(ctx, h.logger, h.pubsub, h.host.ID(), room, nick, h.writer)
 	if err != nil {
 		h.logger.Error("failed to join to room", zap.Error(err), zap.String("room", room))
 		return err
@@ -73,7 +78,7 @@ func (h *Handler) JoinRoom(ctx context.Context, room string) error {
 func (h *Handler) SendMessage(ctx context.Context, room, nick string, message []byte) {
 	cr, ok := h.cr[room]
 	if !ok {
-		h.JoinRoom(ctx, room)
+		h.JoinRoom(ctx, room, nick)
 	}
 
 	cr, ok = h.cr[room]
@@ -81,20 +86,24 @@ func (h *Handler) SendMessage(ctx context.Context, room, nick string, message []
 		h.logger.Error("chat room not founded", zap.String("room", room), zap.String("nick", nick))
 	}
 
-	cr.SendMessage(ctx, h.logger, message)
+	cr.SendMessage(ctx, h.logger, nick, message)
+}
+
+func (h *Handler) Clear() {
+	for _, cr := range h.cr {
+		cr.Sub.Cancel()
+		cr.Topic.Close()
+	}
+	h.cr = make(map[string]*pkg.ChatRoom)
 }
 
 func messageLogWritter(room string) (*os.File, *bufio.Writer, error) {
-	if err := os.Mkdir("./messages", os.ModePerm); err != nil {
-		return nil, nil, errors.Wrap(err, "can not create messages directory")
-	}
-
 	filepath := fmt.Sprintf("./messages/%s.log", room)
 	logFile, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to open room log file")
 	}
-	writer := bufio.NewWriter(logFile)
 
+	writer := bufio.NewWriter(logFile)
 	return logFile, writer, nil
 }

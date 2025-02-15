@@ -327,6 +327,14 @@
             if (!message) return;
 
             try {
+                const encoder = new TextEncoder();
+                const messageBytes = encoder.encode(message);
+                const base64Message = btoa(String.fromCharCode.apply(null, messageBytes));
+
+                console.log(message)
+                console.log(messageBytes)
+                console.log(base64Message)
+
                 await fetch(`/send-message`, {
                     method: "POST",
                     headers: {
@@ -335,7 +343,7 @@
                     body: JSON.stringify({
                         nick,
                         room,
-                        message,
+                        base64Message,
                     }),
                 });
 

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -34,12 +33,11 @@ func ParseConfig() Config {
 	}
 
 	filename, _ := filepath.Abs(configPath)
-	fmt.Println(filename)
-	fmt.Println(configPath)
 	yamlFile, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
+
 	var cfg Config
 	if err = yaml.Unmarshal(yamlFile, &cfg); err != nil {
 		panic(err)

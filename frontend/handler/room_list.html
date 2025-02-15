@@ -274,10 +274,8 @@
 
         async function fetchRoot() {
             try {
-                const response = await fetch("/");
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch root: ${response.statusText}`);
-                }
+                const response = await fetch("/out");
+                
                 sessionStorage.removeItem("user");
                 deleteCookie("user")
                 window.location.href = `/`;
