@@ -5,6 +5,7 @@ import (
 	apiconfig "chatroom/chat/config"
 	"chatroom/config"
 	"chatroom/pkg/models"
+	"context"
 	"embed"
 	"fmt"
 	"net/http"
@@ -27,15 +28,19 @@ type ChatHandler struct {
 	api api.Handler
 }
 
-func NewChatHandler(cfg config.BackendConfig, logger *zap.Logger, msgCh chan models.Message) *ChatHandler {
+func NewChatHandler(ctx context.Context, cfg config.BackendConfig, logger *zap.Logger, msgCh chan models.Message) *ChatHandler {
 	logger = logger.With(zap.String("id", uuid.New().String()))
-	api := api.NewHandler(logger, apiconfig.Config{Host: cfg.Host, Port: cfg.Port})
+	api := api.NewHandler(ctx, logger, apiconfig.Config{Host: cfg.Host, Port: cfg.Port})
 
 	return &ChatHandler{
 		logger: logger,
 		msgCh:  msgCh,
 		api:    api,
 	}
+}
+
+func (h *ChatHandler) Shutdown() error {
+	return h.api.Shutdown()
 }
 
 func (h *ChatHandler) GetRoomsLastMessage(c *gin.Context) (int, map[string]string, error) {
@@ -85,6 +90,8 @@ func (h *ChatHandler) SendMessage(c *gin.Context) (int, error) {
 }
 
 func (h *ChatHandler) LogOut(c *gin.Context) (int, error) {
-	h.api.Clear()
+	if err := h.api.Clear(); err != nil {
+		return http.StatusInternalServerError, errors.Wrap(err, "failed to clear chat rooms")
+	}
 	return http.StatusOK, nil
 }

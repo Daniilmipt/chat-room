@@ -18,11 +18,11 @@ type Router struct {
 	h   *handler.ChatHandler
 }
 
-func Init(cfg config.Config, logger *zap.Logger, msgCh chan models.Message) Router {
+func Init(ctx context.Context, cfg config.Config, logger *zap.Logger, msgCh chan models.Message) Router {
 	g := gin.Default()
 	g.Use(corsMiddleware())
 
-	h := handler.NewChatHandler(cfg.Backend, logger, msgCh)
+	h := handler.NewChatHandler(ctx, cfg.Backend, logger, msgCh)
 
 	r := Router{g: g, h: h, cfg: cfg.Frontend}
 	r.setupRouters()
@@ -46,6 +46,10 @@ func (r *Router) Shutdown(ctx context.Context) error {
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", r.cfg.Port),
 		Handler: r.g,
+	}
+
+	if err := r.h.Shutdown(); err != nil {
+		return err
 	}
 	return srv.Shutdown(ctx)
 }

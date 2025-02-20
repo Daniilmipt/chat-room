@@ -140,6 +140,11 @@ func (cr *ChatRoom) SendMessage(ctx context.Context, logger *zap.Logger, nick st
 
 }
 
+func (cr *ChatRoom) Close() error {
+	cr.Sub.Cancel()
+	return cr.Topic.Close()
+}
+
 func topicName(room string) string {
 	return "chat-room:" + room
 }

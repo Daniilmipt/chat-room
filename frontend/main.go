@@ -11,7 +11,6 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	"go.uber.org/zap"
 )
@@ -26,8 +25,10 @@ func main() {
 	msgCh := make(chan models.Message, 100)
 	defer close(msgCh)
 
+	ctx := context.Background()
+
 	// server
-	r := router.Init(cfg, logger, msgCh)
+	r := router.Init(ctx, cfg, logger, msgCh)
 	r.Run()
 	logger.Info(fmt.Sprintf("Server started at http://localhost:%s", cfg.Frontend.Port))
 
@@ -43,9 +44,6 @@ func main() {
 	<-stop
 	logger.Info("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
@@ -53,7 +51,7 @@ func main() {
 		if err := r.Shutdown(ctx); err != nil {
 			logger.Error("failed to shutdown server", zap.Error(err))
 		}
-		logger.Info("Server exited gracefully")
+		logger.Info("Server, peer and host exited gracefully")
 	}()
 	wg.Wait()
 

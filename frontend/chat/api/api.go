@@ -34,10 +34,9 @@ type Handler struct {
 	writer  *bufio.Writer
 }
 
-func NewHandler(logger *zap.Logger, cfg config.Config) Handler {
+func NewHandler(ctx context.Context, logger *zap.Logger, cfg config.Config) Handler {
 	s := service.NewService(logger, config.Config{Host: cfg.Host, Port: cfg.Port})
 
-	ctx := context.Background()
 	pubsub, host, err := s.GetPubSub(ctx)
 	if err != nil {
 		logger.Error("failed to get pubsub", zap.Error(err), zap.Any("p2p-host", host))
@@ -91,12 +90,27 @@ func (h *Handler) SendMessage(ctx context.Context, room, nick string, message []
 	cr.SendMessage(ctx, h.logger, nick, message)
 }
 
-func (h *Handler) Clear() {
+func (h *Handler) Clear() error {
 	for _, cr := range h.cr {
-		cr.Sub.Cancel()
-		cr.Topic.Close()
+		if err := cr.Close(); err != nil {
+			return err
+		}
 	}
 	h.cr = make(map[string]*pkg.ChatRoom)
+	return nil
+}
+
+func (h *Handler) Shutdown() error {
+	for _, cr := range h.cr {
+		if err := cr.Close(); err != nil {
+			return err
+		}
+	}
+
+	if err := h.host.Close(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func messageLogWritter(room string) (*os.File, *bufio.Writer, error) {
