@@ -1,16 +1,18 @@
 package service
 
 import (
-	"bufio"
-	"chat/config"
-	"chat/pkg"
+	"chatroom/chat/config"
 	"context"
 	"fmt"
-	"os"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/libp2p/go-libp2p"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
@@ -30,82 +32,45 @@ func NewService(logger *zap.Logger, cfg config.Config) *Service {
 	}
 }
 
-func (s *Service) Run(ctx context.Context, msgWritter *bufio.Writer, nick, room string) {
-	p2pAddr := fmt.Sprintf("/ip4/%s/tcp/%s", s.host, s.port)
-	host, err := libp2p.New(libp2p.ListenAddrStrings(p2pAddr))
+func (s *Service) NewPubSub(ctx context.Context) (*pubsub.PubSub, host.Host, error) {
+	priv, _, err := crypto.GenerateKeyPair(
+		crypto.Ed25519,
+		-1,
+	)
 	if err != nil {
-		s.logger.Fatal("failed to create libp2p Host",
-			zap.Error(err),
-		)
+		return nil, nil, errors.Wrap(err, "failed to generate key pair")
+	}
+
+	connmgr, err := connmgr.NewConnManager(
+		100,
+		400,
+		connmgr.WithGracePeriod(time.Hour*24),
+	)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to create connection manager")
+	}
+
+	p2pAddr := fmt.Sprintf("/ip4/%s/tcp/%s", s.host, s.port)
+
+	host, err := libp2p.New(
+		libp2p.Identity(priv),
+		libp2p.ListenAddrStrings(p2pAddr),
+		libp2p.ConnectionManager(connmgr),
+		libp2p.NATPortMap(),
+		libp2p.EnableNATService(),
+	)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to create libp2p Host")
 	}
 	s.logger = s.logger.With(zap.Any("p2p-host", host))
 
-	for _, addr := range host.Addrs() {
-		fmt.Printf("Server listening at: %s/p2p/%s\n", addr, host.ID())
-	}
-
 	ps, err := pubsub.NewGossipSub(ctx, host)
 	if err != nil {
-		s.logger.Fatal("failed to create PubSub service",
-			zap.Any("p2p-host", host),
-			zap.Error(err),
-		)
+		return nil, host, errors.Wrap(err, "failed to create PubSub service")
 	}
 	if err := setupDiscovery(host); err != nil {
-		s.logger.Fatal("failed to setup mDNS discovery",
-			zap.Any("p2p-host", host),
-			zap.Error(err),
-		)
+		return ps, host, errors.Wrap(err, "failed to setup mDNS discovery")
 	}
 
-	errCh := make(chan error)
-	defer close(errCh)
-
-	cr := pkg.JoinChatRoom(ctx, ps, host.ID(), nick, room, msgWritter, errCh)
-	go func() {
-		for err := range errCh {
-			s.logger.Error("failed to join in chat room",
-				zap.Any("p2p-host", host),
-				zap.String("nick", nick),
-				zap.String("room", room),
-				zap.Error(err),
-			)
-		}
-	}()
-
-	s.sendMessage(cr)
-}
-
-func (s *Service) sendMessage(cr *pkg.ChatRoom) {
-	logger := s.logger.With(zap.String("nick", cr.Nick), zap.String("room", cr.Room))
-
-	scanner := bufio.NewScanner(os.Stdin)
-	for {
-		if scanner.Scan() {
-			message := scanner.Text()
-			if message == "" {
-				continue
-			}
-
-			logger.Info("received message", zap.String("message", message))
-
-			err := cr.Publish(message)
-			if err != nil {
-				logger.Error("failed to send message",
-					zap.String("message", message),
-					zap.Error(err),
-				)
-				continue
-			}
-
-			logger.Info("message was published",
-				zap.String("message", message),
-			)
-		} else {
-			if err := scanner.Err(); err != nil {
-				logger.Error("failed to get scanner error", zap.Error(err))
-			}
-			break
-		}
-	}
+	return ps, host, nil
 }

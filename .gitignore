@@ -1,6 +1,3 @@
-.vscode/*
-chatlog
-frontendlog
-messages/*
-chat/messages/*
-frontend/messages/*
+.vscode
+.applog
+.messages
