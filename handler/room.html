@@ -161,6 +161,12 @@
             border-radius: 50%;
         }
 
+        #filePreview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .previewItem { position: relative; padding: 5px; background: #e3e3e3; border-radius: 8px; font-size: 14px; display: flex; align-items: center; }
+        .previewItem img { width: 20%; height: auto; border-radius: 6px; }
+        .removeFile { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: white; border-radius: 50%; width: 18px; height: 18px; text-align: center; font-size: 12px; line-height: 18px; cursor: pointer; }
+        #uploadFileButton { background: none; border: none; cursor: pointer; font-size: 20px; padding: 10px; }
+
         /* Media Queries */
         @media (max-width: 768px) {
             header #roomInfo {
@@ -210,12 +216,18 @@
         <button class="logout-button" id="logoutButton">Chat List</button>
     </header>
 
+    <input type="file" id="fileInput" style="display: none;" multiple>
+    <div id="filePreview"></div>
+
     <div class="chat-container">
         <div class="messages" id="messages"></div>
         <div class="input-container">
             <input type="text" id="messageInput" placeholder="Type your message here..." />
             <button id="sendMessageButton">➤</button>
             <button id="emojiButton">😊</button>
+
+            <button id="uploadFileButton">📎</button> <!-- Paperclip button -->
+
         </div>
     </div>
     
@@ -239,6 +251,9 @@
         const sendMessageButton = document.getElementById("sendMessageButton");
         const emojyPreviewsendMessageButton = document.getElementById("emojyPreview");
         const logoutButton = document.getElementById("logoutButton");
+
+        const fileInput = document.getElementById("fileInput");
+        const uploadFileButton = document.getElementById("uploadFileButton");
 
         const emojiButton = document.getElementById("emojiButton");
         const emojiPopup = document.getElementById("emojiPopup");
@@ -271,6 +286,7 @@
         roomInfo.textContent = `Room: ${room}, Nick: ${nick}`;
 
         const roomMessages = {};
+        
         async function loadMessages() {
             try {
                 const response = await fetch(`/messages?room=${room}`, {
@@ -282,7 +298,7 @@
                 });
                 const text = await response.text();
                 const lines = text.trim().split("\n");
-                console.log(lines)
+                console.log(lines);
         
                 // Clear the messages container
                 messagesContainer.innerHTML = "";
@@ -291,21 +307,41 @@
                     const parts = line.split(": ");
                     if (parts.length === 3) {
                         const sender = parts[0];
-                        const content = parts[1];
+                        const content = parts[1]; // The message content
                         const timestamp = parts[2];
                         const timestampNew = formatTimestamp(timestamp);
         
                         const messageDiv = document.createElement("div");
                         messageDiv.classList.add("message");
-        
-                        // Check if the message is from the current user
                         messageDiv.classList.add(sender === nick ? "self" : "other");
         
-                        messageDiv.innerHTML = `
-                            <div class="nick">${sender}</div>
-                            <div class="content">${content}</div>
-                            <div class="time">${timestampNew}</div>
-                        `;
+                        let messageContent;
+                        if (isBase64Image(content)) {
+                            // If it's an image, create an <img> tag
+                            const img = document.createElement("img");
+                            img.src = `data:image/png;base64,${content}`; // Assuming PNG; adjust as needed
+                            img.style.maxWidth = "200px"; // Limit image size
+                            img.style.borderRadius = "5px";
+                            messageContent = img;
+                        } else {
+                            // Otherwise, treat it as text
+                            messageContent = document.createElement("div");
+                            messageContent.classList.add("content");
+                            messageContent.textContent = content;
+                        }
+        
+                        // Append elements
+                        const nickDiv = document.createElement("div");
+                        nickDiv.classList.add("nick");
+                        nickDiv.textContent = sender;
+        
+                        const timeDiv = document.createElement("div");
+                        timeDiv.classList.add("time");
+                        timeDiv.textContent = timestampNew;
+        
+                        messageDiv.appendChild(nickDiv);
+                        messageDiv.appendChild(messageContent);
+                        messageDiv.appendChild(timeDiv);
         
                         messagesContainer.appendChild(messageDiv);
                     }
@@ -316,54 +352,31 @@
                 console.error("Error loading messages:", error);
             }
         }
+        
+        // Function to check if a string is a Base64 image
+        function isBase64Image(base64) {
+            try {
+                // Decode first few bytes
+                const decoded = atob(base64).slice(0, 4);
+                const byteArray = [...decoded].map(char => char.charCodeAt(0).toString(16)).join(" ");
+        
+                // Check for known image file headers
+                return byteArray.startsWith("89 50 4e 47") || // PNG
+                       byteArray.startsWith("ff d8 ff") ||   // JPEG
+                       byteArray.startsWith("47 49 46 38");  // GIF
+            } catch (e) {
+                return false; // Invalid Base64
+            }
+        }
+        
 
         loadMessages();
         setInterval(loadMessages, 2000);
         
-        
-
-        async function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
-
-            try {
-                const encoder = new TextEncoder();
-                const messageBytes = encoder.encode(message);
-                const base64Message = btoa(String.fromCharCode.apply(null, messageBytes));
-
-                console.log(message)
-                console.log(messageBytes)
-                console.log(base64Message)
-
-                await fetch(`/send-message`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        nick,
-                        room,
-                        base64Message,
-                    }),
-                });
-
-                messageInput.value = ""; // Clear the input
-            } catch (error) {
-                console.error("Error sending message:", error);
-                alert("Failed to send message.");
-            }
-        }
-
         function logOut() {
             // Redirect to the start page
             window.location.href = "/rooms-list";
         }
-
-        // Attach event listeners
-        sendMessageButton.addEventListener("click", sendMessage);
-        messageInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") sendMessage();
-        });
 
         logoutButton.addEventListener("click", logOut);
 
@@ -390,6 +403,122 @@
             // Format and return the string
             return formatter.format(date).replace(",", "");
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const fileInput = document.getElementById("fileInput");
+            const uploadFileButton = document.getElementById("uploadFileButton");
+            const filePreview = document.getElementById("filePreview");
+
+            let selectedFiles = []; // Store selected files
+
+            // 📎 Click → Open file picker
+            uploadFileButton.addEventListener("click", () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener("change", (event) => {
+                const files = Array.from(event.target.files);
+                files.forEach((file) => {
+                    selectedFiles.push(file);
+                    displayFile(file);
+                });
+                fileInput.value = ""; // Reset input to allow reselecting the same file
+            });
+        
+            function displayFile(file) {
+                const previewItem = document.createElement("div");
+                previewItem.classList.add("previewItem");
+        
+                if (file.type.startsWith("image/")) {
+                    const img = document.createElement("img");
+                    img.src = URL.createObjectURL(file);
+                    img.alt = file.name;
+                    previewItem.appendChild(img);
+                } else {
+                    previewItem.textContent = file.name;
+                }
+        
+                const removeButton = document.createElement("span");
+                removeButton.textContent = "✖";
+                removeButton.classList.add("removeFile");
+                removeButton.addEventListener("click", () => removeFile(file, previewItem));
+        
+                previewItem.appendChild(removeButton);
+                filePreview.appendChild(previewItem);
+            }
+        
+            function removeFile(file, previewItem) {
+                selectedFiles = selectedFiles.filter((f) => f !== file);
+                filePreview.removeChild(previewItem);
+            }
+
+            sendMessageButton.addEventListener("click", send);
+
+            // Send message on "Enter" press
+            messageInput.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    send();
+                }
+            });
+
+            async function send() {
+                const textMessage = messageInput.value.trim();
+                const hasFiles = selectedFiles.length > 0;
+
+                if (!textMessage && !hasFiles) return alert("Enter a message or add an image!");
+
+                if (textMessage) await sendMessage(textMessage);
+                for (const file of selectedFiles) await sendFile(file);
+
+                selectedFiles = [];
+                filePreview.innerHTML = "";
+                messageInput.value = "";
+            }
+
+
+            async function sendMessage(text) {
+                let utf8Encode = new TextEncoder().encode(text);
+                let base64Text = btoa(String.fromCharCode(...utf8Encode));
+                let type = "text"
+                try {
+                    await fetch(`/send-message`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ nick, room, base64Message: base64Text, type }),
+                    });
+                    console.log(`Sent message: ${text}`);
+                } catch (error) {
+                    console.error("Error sending message:", error);
+                }
+            }
+
+
+            async function sendFile(file) {
+                const reader = new FileReader();
+                let type = "image"
+                reader.onload = async function (event) {
+                    const base64Data = event.target.result.split(",")[1];
+
+                    try {
+                        await fetch(`/send-message`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                nick,
+                                room,
+                                base64Message: base64Data,
+                                type,
+                            }),
+                        });
+                        console.log(`Sent file: ${file.name}`);
+                    } catch (error) {
+                        console.error(`Error sending ${file.name}:`, error);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     </script>
 </body>
 </html>
