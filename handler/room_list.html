@@ -183,7 +183,7 @@
 
         async function loadRooms() {
             try {
-                const response = await fetch(`/api/rooms-last-message`);
+                const response = await fetch(`/rooms-last-message`);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch room messages: ${response.statusText}`);
                 }
@@ -244,17 +244,6 @@
         function closeJoinRoomModal() {
             const modal = document.getElementById('joinRoomModal');
             modal.classList.add('hidden');
-        }
-
-        function getCookie(name) {
-            const cookies = document.cookie.split("; ");
-            for (let cookie of cookies) {
-                const [cookieName, cookieValue] = cookie.split("=");
-                if (cookieName === name) {
-                    return decodeURIComponent(cookieValue);
-                }
-            }
-            return null; // Return null if cookie not found
         }
 
         async function submitJoinRoom() {

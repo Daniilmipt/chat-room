@@ -273,7 +273,7 @@
         const roomMessages = {};
         async function loadMessages() {
             try {
-                const response = await fetch(`/api/messages?room=${room}`, {
+                const response = await fetch(`/messages?room=${room}`, {
                     headers: {
                         'Cache-Control': 'no-cache',
                         'Pragma': 'no-cache',

@@ -1,7 +1,6 @@
 package config
 
 type Config struct {
-	Host   string
-	Port   string
-	PeerID string
+	Host string
+	Port string
 }

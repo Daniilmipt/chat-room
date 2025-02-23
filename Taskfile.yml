@@ -28,20 +28,10 @@ tasks:
     cmds:
       - "{{.CHAT_LINUX_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}}"
 
-  run-chat-linux-node:
-    desc: "Run chat application as node on Linux"
-    cmds:
-      - "{{.CHAT_LINUX_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}} -node"
-
   run-chat-windows:
     desc: "Run chat application on Windows"
     cmds:
       - "{{.CHAT_WIN_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}}"
-
-  run-chat-windows-node:
-    desc: "Run chat application as node on Windows"
-    cmds:
-      - "{{.CHAT_WIN_PATH}} -nick={{.CHAT_NICK}} -room={{.CHAT_ROOM}} -node"
 
   run-chatroom-linux:
     desc: "Run chatroom application on Linux"
