@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Rooms</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #36393f;
+            color: #dcddde;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: #2f3136;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #202225;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .room-list {
+            flex: 1;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+            border: 1px solid #2f3136;
+            border-radius: 8px;
+            background-color: #40444b;
+        }
+
+        .room-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #2f3136;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .room-item:hover {
+            background-color: #3a3d42;
+        }
+
+        .room-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .last-message {
+            font-size: 14px;
+            color: #b9bbbe;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 15px;
+            background-color: #7289da;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 0 5px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #5b6eae;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background-color: #2f3136;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+            position: relative;
+        }
+
+        .modal-content h2 {
+            margin: 0 0 10px;
+            color: #fff;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #40444b;
+            color: #fff;
+        }
+
+        .modal-content button {
+            background-color: #7289da;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal-content button:hover {
+            background-color: #5b6eae;
+        }
+
+        .modal-content .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            color: #fff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>Chat Rooms</header>
+    <div class="container">
+        <ul class="room-list" id="roomList">
+            <!-- Room items dynamically inserted here -->
+        </ul>
+        <div class="button-container">
+            <button onclick="joinRoom()">Join a New Room</button>
+            <button onclick="fetchRoot()">Log out</button>
+        </div>
+    </div>
+
+    <!-- Modal for Joining Room -->
+    <div class="modal hidden" id="joinRoomModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeJoinRoomModal()">×</span>
+            <h2>Join a Room</h2>
+            <input type="text" id="roomNameInput" placeholder="Enter room name">
+            <button onclick="submitJoinRoom()">Join</button>
+        </div>
+    </div>
+
+    <script>
+        const userNick = sessionStorage.getItem("user");
+
+        async function loadRooms() {
+            try {
+                const response = await fetch(`/api/rooms-last-message`);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch room messages: ${response.statusText}`);
+                }
+
+                const roomMessages = await response.json();
+                const parsedRooms = Object.keys(roomMessages).map((roomName) => ({
+                    room: roomName,
+                    "last-message": roomMessages[roomName]
+                }));
+
+                const roomList = document.getElementById('roomList');
+                roomList.innerHTML = '';
+
+                parsedRooms.forEach((room) => {
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('room-item');
+
+                    const roomInfo = document.createElement('div');
+                    roomInfo.classList.add('room-info');
+
+                    const roomNameDiv = document.createElement('div');
+                    roomNameDiv.classList.add('room-name');
+                    roomNameDiv.textContent = room.room;
+
+                    const lastMessageDiv = document.createElement('div');
+                    lastMessageDiv.classList.add('last-message');
+                    lastMessageDiv.textContent = room["last-message"] || 'No messages yet';
+
+                    roomInfo.appendChild(roomNameDiv);
+                    roomInfo.appendChild(lastMessageDiv);
+
+                    const enterButton = document.createElement('button');
+                    enterButton.classList.add('enter-room');
+                    enterButton.textContent = 'Enter';
+                    enterButton.onclick = () => {
+                        if (!userNick) {
+                            alert("User nickname not found!");
+                            return;
+                        }
+                        window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room.room)}`;
+                    };
+
+                    listItem.appendChild(roomInfo);
+                    listItem.appendChild(enterButton);
+
+                    roomList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error loading rooms:', error);
+            }
+        }
+
+        function joinRoom() {
+            const modal = document.getElementById('joinRoomModal');
+            modal.classList.remove('hidden');
+        }
+
+        function closeJoinRoomModal() {
+            const modal = document.getElementById('joinRoomModal');
+            modal.classList.add('hidden');
+        }
+
+        function getCookie(name) {
+            const cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                const [cookieName, cookieValue] = cookie.split("=");
+                if (cookieName === name) {
+                    return decodeURIComponent(cookieValue);
+                }
+            }
+            return null; // Return null if cookie not found
+        }
+
+        async function submitJoinRoom() {
+            const room = document.getElementById('roomNameInput').value;
+            if (!room) {
+                alert("Room name is required.");
+                return;
+            }
+
+            if (!userNick) {
+                alert("User nick not found in sessionStorage.");
+                return;
+            }
+
+            try {
+                window.location.href = `/room?nick=${encodeURIComponent(userNick)}&room=${encodeURIComponent(room)}`;
+            } catch (error) {
+                console.error("Error joining room:", error);
+                alert("Failed to join the room.");
+            } finally {
+                closeJoinRoomModal();
+            }
+        }
+
+        function deleteCookie(name) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+
+        async function fetchRoot() {
+            try {
+                const response = await fetch("/out");
+                
+                sessionStorage.removeItem("user");
+                deleteCookie("user")
+                window.location.href = `/`;
+            } catch (error) {
+                console.error("Error fetching root:", error);
+                alert("Failed to fetch root.");
+            }
+        }
+
+        loadRooms();
+        setInterval(loadRooms(), 2000);
+    </script>
+</body>
+</html>
