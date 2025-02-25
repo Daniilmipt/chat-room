@@ -161,6 +161,52 @@
             border-radius: 50%;
         }
 
+        /* Image Popup */
+        .image-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            cursor: pointer;
+        }
+
+        .image-popup.active {
+            display: flex;
+        }
+
+        .image-popup-content {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            background: #2f3136;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .close-popup {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff5252;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            border: 2px solid white;
+        }
+
         #filePreview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .previewItem { position: relative; padding: 5px; background: #e3e3e3; border-radius: 8px; font-size: 14px; display: flex; align-items: center; }
         .previewItem img { width: 20%; height: auto; border-radius: 6px; }
@@ -218,6 +264,11 @@
 
     <input type="file" id="fileInput" style="display: none;" multiple>
     <div id="filePreview"></div>
+
+    <div class="image-popup" id="imagePopup">
+        <span class="close-popup">×</span>
+        <img class="image-popup-content" id="popupImage">
+    </div>
 
     <div class="chat-container">
         <div class="messages" id="messages"></div>
@@ -307,46 +358,56 @@
                     const parts = line.split(": ");
                     if (parts.length === 3) {
                         const sender = parts[0];
-                        const content = parts[1]; // The message content
+                        const content = parts[1];
                         const timestamp = parts[2];
                         const timestampNew = formatTimestamp(timestamp);
-        
+
                         const messageDiv = document.createElement("div");
                         messageDiv.classList.add("message");
                         messageDiv.classList.add(sender === nick ? "self" : "other");
-        
-                        let messageContent;
+
+                        // Create content container
+                        const contentContainer = document.createElement("div");
+                        contentContainer.classList.add("content");
+
                         if (isBase64Image(content)) {
-                            // If it's an image, create an <img> tag
                             const img = document.createElement("img");
-                            img.src = `data:image/png;base64,${content}`; // Assuming PNG; adjust as needed
-                            img.style.maxWidth = "200px"; // Limit image size
+                            img.src = `data:image/png;base64,${content}`;
+                            img.style.maxWidth = "200px";
                             img.style.borderRadius = "5px";
-                            messageContent = img;
+                            img.style.cursor = "pointer";
+                            
+                            // Add click handler for enlarging
+                            img.addEventListener("click", (e) => {
+                                e.stopPropagation();
+                                const popup = document.getElementById("imagePopup");
+                                const popupImg = document.getElementById("popupImage");
+                                popupImg.src = img.src;
+                                popup.classList.add("active");
+                            });
+                            
+                            contentContainer.appendChild(img);
                         } else {
-                            // Otherwise, treat it as text
-                            messageContent = document.createElement("div");
-                            messageContent.classList.add("content");
-                            messageContent.textContent = content;
+                            contentContainer.textContent = content;
                         }
-        
-                        // Append elements
+
+                        // Create and append other elements
                         const nickDiv = document.createElement("div");
                         nickDiv.classList.add("nick");
                         nickDiv.textContent = sender;
-        
+
                         const timeDiv = document.createElement("div");
                         timeDiv.classList.add("time");
                         timeDiv.textContent = timestampNew;
-        
+
                         messageDiv.appendChild(nickDiv);
-                        messageDiv.appendChild(messageContent);
+                        messageDiv.appendChild(contentContainer);
                         messageDiv.appendChild(timeDiv);
-        
+
                         messagesContainer.appendChild(messageDiv);
                     }
                 });
-        
+
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             } catch (error) {
                 console.error("Error loading messages:", error);
@@ -496,10 +557,18 @@
 
             async function sendFile(file) {
                 const reader = new FileReader();
-                let type = "image"
+                
+                // Determine file type
+                let type = "file";
+                if (file.type.startsWith("image/")) {
+                    type = "image";
+                } else if (file.type.startsWith("video/")) {
+                    type = "video";
+                }
+            
                 reader.onload = async function (event) {
                     const base64Data = event.target.result.split(",")[1];
-
+            
                     try {
                         await fetch(`/send-message`, {
                             method: "POST",
@@ -509,6 +578,7 @@
                                 room,
                                 base64Message: base64Data,
                                 type,
+                                fileName: file.name // Send original filename
                             }),
                         });
                         console.log(`Sent file: ${file.name}`);
@@ -518,6 +588,28 @@
                 };
                 reader.readAsDataURL(file);
             }
+
+            const imagePopup = document.getElementById("imagePopup");
+            const closePopup = document.querySelector(".close-popup");
+
+            // Close popup when clicking close button
+            closePopup.addEventListener("click", () => {
+                imagePopup.classList.remove("active");
+            });
+
+            // Close when clicking outside image
+            imagePopup.addEventListener("click", (e) => {
+                if (e.target === imagePopup) {
+                    imagePopup.classList.remove("active");
+                }
+            });
+
+            // Close with ESC key
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && imagePopup.classList.contains("active")) {
+                    imagePopup.classList.remove("active");
+                }
+            });
         });
     </script>
 </body>
