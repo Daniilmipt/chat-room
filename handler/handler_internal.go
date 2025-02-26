@@ -18,7 +18,7 @@ const maxWorkersFileIter = 10
 
 func (h *ChatHandler) sendMessageInOut(ctx context.Context) {
 	for msg := range h.msgCh {
-		h.api.SendMessage(ctx, msg.Room, msg.Nick, msg.Message)
+		h.api.SendMessage(ctx, msg.Room, msg.Nick, msg.FileName, msg.Message)
 	}
 }
 

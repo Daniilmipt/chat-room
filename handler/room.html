@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         /* Global Styles */
         body {
@@ -207,6 +208,59 @@
             border: 2px solid white;
         }
 
+        .file-download {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #40444b;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            max-width: 400px;
+        }
+        
+        .file-download:hover {
+            background: #36393f;
+        }
+        
+        .file-download i {
+            font-size: 2rem;
+            color: #7289da;
+        }
+        
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: #fff;
+        }
+        
+        .file-size {
+            font-size: 0.8rem;
+            color: #b9bbbe;
+        }
+        
+        video, audio {
+            background: #000;
+            margin: 0.5rem 0;
+        }
+
+        .html-preview {
+            background: #2f3136;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .html-preview iframe {
+            margin-bottom: 1rem;
+        }
+
         #filePreview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .previewItem { position: relative; padding: 5px; background: #e3e3e3; border-radius: 8px; font-size: 14px; display: flex; align-items: center; }
         .previewItem img { width: 20%; height: auto; border-radius: 6px; }
@@ -351,15 +405,16 @@
                 const lines = text.trim().split("\n");
                 console.log(lines);
         
-                // Clear the messages container
                 messagesContainer.innerHTML = "";
         
                 lines.forEach((line) => {
                     const parts = line.split(": ");
-                    if (parts.length === 3) {
+                    
+                    if (parts.length === 4) {
                         const sender = parts[0];
-                        const content = parts[1];
-                        const timestamp = parts[2];
+                        const fileName = parts[1];
+                        const content = parts[2];
+                        const timestamp = parts[3];
                         const timestampNew = formatTimestamp(timestamp);
 
                         const messageDiv = document.createElement("div");
@@ -369,67 +424,256 @@
                         // Create content container
                         const contentContainer = document.createElement("div");
                         contentContainer.classList.add("content");
-
-                        if (isBase64Image(content)) {
-                            const img = document.createElement("img");
-                            img.src = `data:image/png;base64,${content}`;
-                            img.style.maxWidth = "200px";
-                            img.style.borderRadius = "5px";
-                            img.style.cursor = "pointer";
-                            
-                            // Add click handler for enlarging
-                            img.addEventListener("click", (e) => {
-                                e.stopPropagation();
-                                const popup = document.getElementById("imagePopup");
-                                const popupImg = document.getElementById("popupImage");
-                                popupImg.src = img.src;
-                                popup.classList.add("active");
-                            });
-                            
-                            contentContainer.appendChild(img);
-                        } else {
-                            contentContainer.textContent = content;
+        
+                        // Detect file type and handle content
+                        const fileType = detectFileType(content);
+                        console.log(`Detected file type: ${fileType}`);
+        
+                        switch(fileType) {
+                            case 'image/gif':
+                            case 'image/png':
+                            case 'image/jpeg':
+                            case 'image/*': {
+                                const img = createImageElement(content, fileType);
+                                contentContainer.appendChild(img);
+                                break;
+                            }
+                            case 'audio/mpeg': {
+                                const audio = createAudioElement(content);
+                                contentContainer.appendChild(audio);
+                                break;
+                            }
+                            case 'text/html':
+                                return createHtmlPreviewElement(content, fileName);
+                            default: {
+                                const fileIcon = createFileDownloadElement(content, fileName, fileType);
+                                contentContainer.appendChild(fileIcon);
+                                break;
+                            }
                         }
-
-                        // Create and append other elements
+        
+                        // Add message metadata
                         const nickDiv = document.createElement("div");
                         nickDiv.classList.add("nick");
                         nickDiv.textContent = sender;
-
+        
                         const timeDiv = document.createElement("div");
                         timeDiv.classList.add("time");
                         timeDiv.textContent = timestampNew;
-
+        
                         messageDiv.appendChild(nickDiv);
                         messageDiv.appendChild(contentContainer);
                         messageDiv.appendChild(timeDiv);
-
                         messagesContainer.appendChild(messageDiv);
                     }
                 });
-
+        
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             } catch (error) {
                 console.error("Error loading messages:", error);
             }
         }
         
-        // Function to check if a string is a Base64 image
-        function isBase64Image(base64) {
+        function detectFileType(base64) {
             try {
-                // Decode first few bytes
-                const decoded = atob(base64).slice(0, 4);
-                const byteArray = [...decoded].map(char => char.charCodeAt(0).toString(16)).join(" ");
+                const decoded = atob(base64);
+                const byteArray = new Uint8Array(decoded.length);
+                for (let i = 0; i < decoded.length; i++) {
+                    byteArray[i] = decoded.charCodeAt(i);
+                }
         
-                // Check for known image file headers
-                return byteArray.startsWith("89 50 4e 47") || // PNG
-                       byteArray.startsWith("ff d8 ff") ||   // JPEG
-                       byteArray.startsWith("47 49 46 38");  // GIF
+                const hexHeader = Array.from(byteArray.slice(0, 8))
+                    .map(b => b.toString(16).padStart(2, '0'))
+                    .join(' ')
+                    .toUpperCase();
+
+                console.log(hexHeader)
+        
+                // Existing file type checks
+                if (hexHeader.startsWith('47 49 46 38')) return 'image/gif';
+                if (hexHeader.startsWith('89 50 4E 47')) return 'image/png';
+                if (hexHeader.startsWith('FF D8 FF')) return 'image/jpeg';
+                if (hexHeader.startsWith('25 50 44 46')) return 'application/pdf';
+                if (hexHeader.startsWith('50 4B 03 04')) return 'application/zip';
+                if (hexHeader.includes('66 74 79 70')) return 'video/mp4';
+                if (hexHeader.startsWith('30 26 B2 75')) return 'video/wmv';
+                if (hexHeader.startsWith('49 44 33')) return 'audio/mpeg';
+                if (hexHeader.startsWith('52 49 46 46')) return 'video/avi';
+        
+                // New additions for Excel and HTML
+                if (hexHeader.startsWith('D0 CF 11 E0')) return 'application/vnd.ms-excel'; // .xls
+                if (hexHeader.startsWith('3C 68 74 6D') ||
+                    hexHeader.startsWith('0A 0A 0A 0A 0A 0A 3C 21')) {   // <htm
+                    return 'text/html';
+                }
+        
+                // Fallback to generic image detection
+                if (hexHeader.startsWith('FF D8') || 
+                    hexHeader.startsWith('89 50') ||
+                    hexHeader.startsWith('47 49')) return 'image/*';
+        
+                return 'unknown';
             } catch (e) {
-                return false; // Invalid Base64
+                return 'invalid';
             }
         }
+
+        function createHtmlPreviewElement(content, fileName) {
+            const container = document.createElement('div');
+            container.className = 'html-preview';
+            
+            // Safe preview frame
+            const preview = document.createElement('iframe');
+            preview.srcdoc = atob(content);
+            preview.style.width = '100%';
+            preview.style.height = '300px';
+            preview.style.border = 'none';
+            preview.style.background = 'white';
+            preview.style.borderRadius = '8px';
+            
+            // Download link
+            const downloadLink = document.createElement('div');
+            downloadLink.className = 'file-download';
+            downloadLink.innerHTML = `
+                <i class="fas fa-file-code"></i>
+                <div class="file-info">
+                    <div class="file-name">${fileName}</div>
+                    <div class="file-size">${formatFileSize(content.length)}</div>
+                </div>
+            `;
+            
+            downloadLink.addEventListener('click', () => {
+                // Download logic
+            });
+            
+            container.appendChild(preview);
+            container.appendChild(downloadLink);
+            return container;
+        }
         
+        function createImageElement(content, mimeType) {
+            const img = document.createElement('img');
+            img.src = `data:${mimeType};base64,${content}`;
+            img.style.maxWidth = '300px';
+            img.style.borderRadius = '8px';
+            img.style.cursor = 'pointer';
+            
+            img.addEventListener('click', (e) => {
+                showImagePopup(img.src);
+            });
+            
+            return img;
+        }
+        
+        function showImagePopup(imageSrc) {
+            const popup = document.getElementById("imagePopup");
+            const popupImg = document.getElementById("popupImage");
+            popupImg.src = imageSrc;
+            popup.classList.add("active");
+        }
+
+        function createVideoElement(content, mimeType) {
+            const video = document.createElement('video');
+            video.controls = true;
+            video.style.maxWidth = '400px';
+            video.style.borderRadius = '8px';
+            video.innerHTML = `
+                <source src="data:${mimeType};base64,${content}" type="${mimeType}">
+                Your browser does not support video playback
+            `;
+            return video;
+        }
+        
+        function createAudioElement(content) {
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.style.width = '300px';
+            audio.innerHTML = `
+                <source src="data:audio/mpeg;base64,${content}" type="audio/mpeg">
+                Your browser does not support audio playback
+            `;
+            return audio;
+        }
+        
+        // Enhanced file download element
+        function createFileDownloadElement(content, fileName, fileType) {
+            const container = document.createElement('div');
+            container.className = 'file-download';
+            
+            // File type icon
+            const icon = document.createElement('i');
+            icon.className = getFileTypeIcon(fileType);
+            
+            // File info
+            const info = document.createElement('div');
+            info.className = 'file-info';
+            
+            const name = document.createElement('div');
+            name.textContent = fileName;
+            name.className = 'file-name';
+            
+            const size = document.createElement('div');
+            size.textContent = formatFileSize(content.length);
+            size.className = 'file-size';
+            
+            info.appendChild(name);
+            info.appendChild(size);
+            
+            container.appendChild(icon);
+            container.appendChild(info);
+            
+            container.addEventListener('click', () => {
+                const blob = base64ToBlob(content, fileType);
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                a.click();
+                
+                URL.revokeObjectURL(url);
+            });
+            
+            return container;
+        }
+        
+        // Helper functions
+        function base64ToBlob(base64, contentType = 'application/octet-stream') {
+            const byteCharacters = atob(base64);
+            const byteArrays = [];
+            
+            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                const slice = byteCharacters.slice(offset, offset + 512);
+                const byteNumbers = new Array(slice.length);
+                
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                
+                byteArrays.push(new Uint8Array(byteNumbers));
+            }
+            
+            return new Blob(byteArrays, {type: contentType});
+        }
+        
+        function getFileTypeIcon(fileType) {
+            const icons = {
+                'application/pdf': 'fas fa-file-pdf',
+                'application/zip': 'fas fa-file-archive',
+                'text/plain': 'fas fa-file-alt',
+                'default': 'fas fa-file'
+            };
+            
+            return icons[fileType] || icons.default;
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
 
         loadMessages();
         setInterval(loadMessages, 2000);
@@ -546,7 +790,7 @@
                     await fetch(`/send-message`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ nick, room, base64Message: base64Text, type }),
+                        body: JSON.stringify({ nick, room, base64message: base64Text, type }),
                     });
                     console.log(`Sent message: ${text}`);
                 } catch (error) {
@@ -560,11 +804,6 @@
                 
                 // Determine file type
                 let type = "file";
-                if (file.type.startsWith("image/")) {
-                    type = "image";
-                } else if (file.type.startsWith("video/")) {
-                    type = "video";
-                }
             
                 reader.onload = async function (event) {
                     const base64Data = event.target.result.split(",")[1];
@@ -576,9 +815,9 @@
                             body: JSON.stringify({
                                 nick,
                                 room,
-                                base64Message: base64Data,
+                                base64message: base64Data,
                                 type,
-                                fileName: file.name // Send original filename
+                                filename: file.name // Send original filename
                             }),
                         });
                         console.log(`Sent file: ${file.name}`);

@@ -37,6 +37,7 @@ type ChatRoom struct {
 type ChatMessage struct {
 	Message    []byte
 	SenderNick string
+	FileName   string
 }
 
 func JoinChatRoom(ctx context.Context, logger *zap.Logger, ps *pubsub.PubSub, selfID peer.ID, room, nick string, writer *bufio.Writer) (*ChatRoom, error) {
@@ -65,10 +66,11 @@ func JoinChatRoom(ctx context.Context, logger *zap.Logger, ps *pubsub.PubSub, se
 	return cr, nil
 }
 
-func (cr *ChatRoom) Publish(ctx context.Context, message []byte) error {
+func (cr *ChatRoom) Publish(ctx context.Context, filename string, message []byte) error {
 	m := ChatMessage{
 		Message:    message,
 		SenderNick: cr.Nick,
+		FileName:   filename,
 	}
 	msgBytes, err := json.Marshal(m)
 	if err != nil {
@@ -112,7 +114,7 @@ func (cr *ChatRoom) readLoop(ctx context.Context, logger *zap.Logger) {
 }
 
 func (cr *ChatRoom) writeInFile(cm *ChatMessage) error {
-	logEntry := fmt.Sprintf("%s: %s: %s\n", cr.Nick, cm.Message, time.Now())
+	logEntry := fmt.Sprintf("%s: %s: %s: %s\n", cr.Nick, cm.FileName, cm.Message, time.Now())
 	if _, err := cr.writer.WriteString(logEntry); err != nil {
 		return err
 	}
@@ -124,14 +126,12 @@ func (cr *ChatRoom) writeInFile(cm *ChatMessage) error {
 	return nil
 }
 
-func (cr *ChatRoom) SendMessage(ctx context.Context, logger *zap.Logger, nick string, message []byte) {
-	loggerNew := logger.With(zap.String("nick", cr.Nick), zap.String("room", cr.Room))
+func (cr *ChatRoom) SendMessage(ctx context.Context, logger *zap.Logger, nick, filename string, message []byte) {
+	logger.Info("received message", zap.ByteString("message", message))
+	defer logger.Info("message was published", zap.ByteString("message", message))
 
-	loggerNew.Info("received message", zap.ByteString("message", message))
-	defer loggerNew.Info("message was published", zap.ByteString("message", message))
-
-	if err := cr.Publish(ctx, message); err != nil {
-		loggerNew.Error("failed to send message",
+	if err := cr.Publish(ctx, filename, message); err != nil {
+		logger.Error("failed to send message",
 			zap.ByteString("message", message),
 			zap.Error(err),
 		)

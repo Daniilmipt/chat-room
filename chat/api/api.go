@@ -80,8 +80,8 @@ func (h *Handler) JoinRoom(ctx context.Context, room, nick string) error {
 	return nil
 }
 
-func (h *Handler) SendMessage(ctx context.Context, room, nick string, message []byte) {
-	logger := h.logger.With(zap.String("room", room), zap.String("nick", nick))
+func (h *Handler) SendMessage(ctx context.Context, room, nick, filename string, message []byte) {
+	logger := h.logger.With(zap.String("room", room), zap.String("nick", nick), zap.String("filename", filename))
 
 	cr, ok := h.cr[room]
 	if !ok {
@@ -93,7 +93,7 @@ func (h *Handler) SendMessage(ctx context.Context, room, nick string, message []
 		logger.Error("chat room not founded or was unsubscribed")
 	}
 
-	cr.SendMessage(ctx, h.logger, nick, message)
+	cr.SendMessage(ctx, logger, nick, filename, message)
 }
 
 func (h *Handler) Clear() error {
