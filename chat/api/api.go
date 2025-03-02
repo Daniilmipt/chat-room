@@ -2,10 +2,10 @@ package api
 
 import (
 	"bufio"
-	"chatroom/chat/config"
 	chroom "chatroom/chat/chatroom"
-	"chatroom/pkg"
+	"chatroom/chat/config"
 	"chatroom/chat/service"
+	"chatroom/pkg"
 	"context"
 	"fmt"
 	"os"
@@ -16,15 +16,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type Params struct {
-	nick string
-	room string
-	host string
-	port string
+type User struct {
+	Nick string
+	Room string
 }
 
 type Handler struct {
-	cr map[string]*chroom.ChatRoom
+	cr map[User]*chroom.ChatRoom
 
 	pubsub *pubsub.PubSub
 	host   host.Host
@@ -52,48 +50,58 @@ func NewHandler(ctx context.Context, logger *zap.Logger, cfg config.Config) Hand
 		pubsub: pubsub,
 		host:   host,
 		logger: logger,
-		cr:     make(map[string]*chroom.ChatRoom),
+		cr:     make(map[User]*chroom.ChatRoom),
 	}
 }
 
-func (h *Handler) JoinRoom(ctx context.Context, room, nick string) error {
-	if _, ok := h.cr[room]; ok {
-		return nil
+func (h *Handler) JoinRoom(ctx context.Context, room, nick string) (*chroom.ChatRoom, error) {
+	usr := User{Room: room, Nick: nick}
+	if cr, ok := h.cr[usr]; ok {
+		return cr, nil
 	}
 
 	f, w, err := messageLogWritter(room)
 	if err != nil {
 		h.logger.Error("failed to create message logs file", zap.Error(err))
-		return err
+		return nil, err
 	}
 
-	h.msgFile = f
-	h.writer = w
-
-	cr, err := chroom.JoinChatRoom(ctx, h.logger, h.pubsub, h.host.ID(), room, nick, h.writer)
+	fileOpts := chroom.ChatRoomFileOptions{
+		Writer: w,
+		File:   f,
+	}
+	cr, err := chroom.JoinChatRoom(ctx, h.logger, h.pubsub, h.host.ID(), room, nick, fileOpts)
 	if err != nil {
 		h.logger.Error("failed to join to room", zap.Error(err), zap.String("room", room))
-		return err
+		return nil, err
 	}
 
-	h.cr[room] = cr
-	return nil
+	h.logger.Info("user joined to room")
+
+	h.cr[usr] = cr
+	return cr, nil
 }
 
 func (h *Handler) SendMessage(ctx context.Context, room, nick, filename string, message []byte) {
 	logger := h.logger.With(zap.String("room", room), zap.String("nick", nick), zap.String("filename", filename))
 
-	cr, ok := h.cr[room]
+	usr := User{Room: room, Nick: nick}
+	cr, ok := h.cr[usr]
 	if !ok {
-		h.JoinRoom(ctx, room, nick)
+		h.JoinRoom(ctx, room, nick) // again connect if not found
 	}
 
-	cr, ok = h.cr[room]
+	cr, ok = h.cr[usr]
 	if !ok {
 		logger.Error("chat room not founded or was unsubscribed")
 	}
 
-	cr.SendMessage(ctx, logger, nick, filename, message)
+	switch filename {
+	case "":
+		cr.SendMessage(ctx, logger, nick, string(message))
+	default:
+		cr.SendMessageWithFile(ctx, logger, nick, filename, message)
+	}
 }
 
 func (h *Handler) Clear() error {
@@ -102,7 +110,7 @@ func (h *Handler) Clear() error {
 			return err
 		}
 	}
-	h.cr = make(map[string]*chroom.ChatRoom)
+	h.cr = make(map[User]*chroom.ChatRoom)
 	return nil
 }
 

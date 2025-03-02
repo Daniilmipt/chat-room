@@ -19,9 +19,11 @@ func (h *ChatHandler) GetRoomView(c *gin.Context) (int, []byte, error) {
 		return http.StatusBadRequest, nil, errors.New("missing room or nick")
 	}
 
-	if err := h.api.JoinRoom(c, room, nick); err != nil {
+	cr, err := h.api.JoinRoom(c, room, nick)
+	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
+	go cr.ReadLoop(c, h.logger)
 
 	data, err := content.ReadFile("room.html")
 	if err != nil {

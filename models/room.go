@@ -30,7 +30,7 @@ func (m *MessageRequest) ToMessage() (Message, error) {
 		data := base64.StdEncoding.EncodeToString(m.Message)
 		return Message{Room: m.Room, Nick: m.Nick, Message: []byte(data), FileName: m.FileName}, nil
 	case Text:
-		return Message{Room: m.Room, Nick: m.Nick, Message: m.Message}, nil
+		return Message{Room: m.Room, Nick: m.Nick, Message: []byte(string(m.Message))}, nil
 	default:
 		return Message{}, errors.New("invalid message type")
 	}

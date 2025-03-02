@@ -87,6 +87,7 @@ func (h *ChatHandler) SendMessage(c *gin.Context) (int, error) {
 	}
 
 	h.msgCh <- msg
+	h.logger.Info("send message", zap.Any("message", msg))
 	return http.StatusOK, nil
 }
 

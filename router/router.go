@@ -17,6 +17,7 @@ type Router struct {
 	l   *zap.Logger
 	g   *gin.Engine
 	h   *handler.ChatHandler
+	bh  *handler.BotHandler
 }
 
 func Init(ctx context.Context, cfg config.Config, logger *zap.Logger, msgCh chan models.Message) Router {
@@ -24,8 +25,15 @@ func Init(ctx context.Context, cfg config.Config, logger *zap.Logger, msgCh chan
 	g.Use(corsMiddleware())
 
 	h := handler.NewChatHandler(ctx, cfg.Api, logger, msgCh)
+	bh := handler.NewBotHandler(cfg.Api, logger)
 
-	r := Router{g: g, h: h, l: logger, cfg: cfg.General}
+	r := Router{
+		g:   g,
+		h:   h,
+		bh:  bh,
+		l:   logger,
+		cfg: cfg.General,
+	}
 	r.setupRouter()
 	return r
 }
@@ -64,6 +72,7 @@ func (r *Router) setupRouter() {
 		auth.GET("/room", handleRequestData(r.h.GetRoomView))
 		auth.GET("/rooms-list", handleRequestData(r.h.GetRoomsListView))
 		auth.GET("/rooms-last-message", handleRequestJson(r.h.GetRoomsLastMessage))
+		auth.POST("/create-bot", handleRequest(r.bh.CreateBot))
 		auth.GET("/messages", handleRequestFile(r.h.GetMessagesFile))
 		auth.POST("/send-message", handleRequest(r.h.SendMessage))
 		auth.GET("/out", handleRequest(r.h.LogOut))

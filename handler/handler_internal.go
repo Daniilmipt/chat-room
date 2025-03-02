@@ -18,6 +18,7 @@ const maxWorkersFileIter = 10
 
 func (h *ChatHandler) sendMessageInOut(ctx context.Context) {
 	for msg := range h.msgCh {
+		h.logger.Info("get message from internal channel", zap.Any("message", msg))
 		h.api.SendMessage(ctx, msg.Room, msg.Nick, msg.FileName, msg.Message)
 	}
 }

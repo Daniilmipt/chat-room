@@ -1,10 +1,11 @@
-package pkg
+package chatroom
 
 import (
 	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -13,25 +14,20 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 )
 
-// ChatRoomBufSize is the number of incoming messages to buffer for each topic.
-const ChatRoomBufSize = 128
-
 // ChatRoom represents a subscription to a single PubSub topic. Messages
 // can be published to the topic with ChatRoom.Publish, and received
 // messages are pushed to the Messages channel.
 type ChatRoom struct {
-	// Messages is a channel of messages received from other peers in the chat room
-	Messages chan *ChatMessage
-
 	ps    *pubsub.PubSub
 	Topic *pubsub.Topic
 	Sub   *pubsub.Subscription
 
-	self peer.ID
+	Self peer.ID
 	Room string
 	Nick string
 
 	writer *bufio.Writer
+	file   *os.File
 }
 
 type ChatMessage struct {
@@ -40,7 +36,12 @@ type ChatMessage struct {
 	FileName   string
 }
 
-func JoinChatRoom(ctx context.Context, logger *zap.Logger, ps *pubsub.PubSub, selfID peer.ID, room, nick string, writer *bufio.Writer) (*ChatRoom, error) {
+type ChatRoomFileOptions struct {
+	Writer *bufio.Writer
+	File   *os.File
+}
+
+func JoinChatRoom(ctx context.Context, logger *zap.Logger, ps *pubsub.PubSub, selfID peer.ID, room, nick string, fileOpts ChatRoomFileOptions) (*ChatRoom, error) {
 	topic, err := ps.Join(topicName(room))
 	if err != nil {
 		return nil, err
@@ -52,21 +53,32 @@ func JoinChatRoom(ctx context.Context, logger *zap.Logger, ps *pubsub.PubSub, se
 	}
 
 	cr := &ChatRoom{
-		ps:       ps,
-		Topic:    topic,
-		Sub:      sub,
-		self:     selfID,
-		Room:     room,
-		Messages: make(chan *ChatMessage, ChatRoomBufSize),
-		writer:   writer,
-		Nick:     nick,
+		ps:     ps,
+		Topic:  topic,
+		Sub:    sub,
+		Self:   selfID,
+		Room:   room,
+		writer: fileOpts.Writer,
+		file:   fileOpts.File,
+		Nick:   nick,
 	}
-
-	go cr.readLoop(ctx, logger)
 	return cr, nil
 }
 
-func (cr *ChatRoom) Publish(ctx context.Context, filename string, message []byte) error {
+func (cr *ChatRoom) Publish(ctx context.Context, message string) error {
+	m := ChatMessage{
+		Message:    []byte(message),
+		SenderNick: cr.Nick,
+	}
+
+	msgBytes, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+	return cr.Topic.Publish(ctx, msgBytes)
+}
+
+func (cr *ChatRoom) PublishWithFile(ctx context.Context, filename string, message []byte) error {
 	m := ChatMessage{
 		Message:    message,
 		SenderNick: cr.Nick,
@@ -79,9 +91,7 @@ func (cr *ChatRoom) Publish(ctx context.Context, filename string, message []byte
 	return cr.Topic.Publish(ctx, msgBytes)
 }
 
-func (cr *ChatRoom) readLoop(ctx context.Context, logger *zap.Logger) {
-	defer close(cr.Messages)
-
+func (cr *ChatRoom) ReadLoop(ctx context.Context, logger *zap.Logger) {
 	for {
 		msg, err := cr.Sub.Next(ctx)
 		if err != nil { // TODO error "subrscription canceled"
@@ -105,17 +115,15 @@ func (cr *ChatRoom) readLoop(ctx context.Context, logger *zap.Logger) {
 			continue
 		}
 
-		if msg.ReceivedFrom == cr.self {
+		if msg.ReceivedFrom == cr.Self {
 			continue
 		}
-
-		cr.Messages <- cm
 	}
 }
 
 func (cr *ChatRoom) writeInFile(cm *ChatMessage) error {
-	logEntry := fmt.Sprintf("%s: %s: %s: %s\n", cr.Nick, cm.FileName, cm.Message, time.Now())
-	if _, err := cr.writer.WriteString(logEntry); err != nil {
+	fileMsg := fmt.Sprintf("%s: %s: %s: %s\n", cm.SenderNick, cm.FileName, cm.Message, time.Now())
+	if _, err := cr.writer.WriteString(fileMsg); err != nil {
 		return err
 	}
 
@@ -126,22 +134,38 @@ func (cr *ChatRoom) writeInFile(cm *ChatMessage) error {
 	return nil
 }
 
-func (cr *ChatRoom) SendMessage(ctx context.Context, logger *zap.Logger, nick, filename string, message []byte) {
+func (cr *ChatRoom) SendMessageWithFile(ctx context.Context, logger *zap.Logger, nick, filename string, message []byte) {
 	logger.Info("received message", zap.ByteString("message", message))
 	defer logger.Info("message was published", zap.ByteString("message", message))
 
-	if err := cr.Publish(ctx, filename, message); err != nil {
+	if err := cr.PublishWithFile(ctx, filename, message); err != nil {
 		logger.Error("failed to send message",
 			zap.ByteString("message", message),
 			zap.Error(err),
 		)
 		return
 	}
+}
 
+func (cr *ChatRoom) SendMessage(ctx context.Context, logger *zap.Logger, nick, message string) {
+	logger.Info("received message", zap.String("message", message))
+	defer logger.Info("message was published", zap.String("message", message))
+
+	if err := cr.Publish(ctx, message); err != nil {
+		logger.Error("failed to send message",
+			zap.String("message", message),
+			zap.Error(err),
+		)
+		return
+	}
 }
 
 func (cr *ChatRoom) Close() error {
 	cr.Sub.Cancel()
+
+	if err := cr.file.Close(); err != nil {
+		return err
+	}
 	return cr.Topic.Close()
 }
 

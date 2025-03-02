@@ -261,6 +261,95 @@
             margin-bottom: 1rem;
         }
 
+        /* Bot Creation Popup Styles */
+        .bot-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .bot-popup-content {
+            background-color: #2f3136;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .bot-popup h3 {
+            margin-top: 0;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #b9bbbe;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #40444b;
+            border-radius: 4px;
+            background-color: #36393f;
+            color: #fff;
+        }
+
+        .create-button {
+            background-color: #7289da;
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .create-button:hover {
+            background-color: #5b6eae;
+        }
+
+        .bot-button {
+            background-color: #43b581;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        .bot-button:hover {
+            background-color: #3aa372;
+        }
+
+        .text-message {
+            color: #dcddde;
+            font-size: 1rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-word;
+            padding: 8px 12px;
+            background-color: #40444b;
+            border-radius: 8px;
+            margin: 4px 0;
+        }
+
         #filePreview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .previewItem { position: relative; padding: 5px; background: #e3e3e3; border-radius: 8px; font-size: 14px; display: flex; align-items: center; }
         .previewItem img { width: 20%; height: auto; border-radius: 6px; }
@@ -313,6 +402,7 @@
 <body>
     <header>
         <div id="roomInfo">Loading room information...</div>
+        <button class="bot-button" id="createBotButton">Create Bot</button>
         <button class="logout-button" id="logoutButton">Chat List</button>
     </header>
 
@@ -322,6 +412,20 @@
     <div class="image-popup" id="imagePopup">
         <span class="close-popup">×</span>
         <img class="image-popup-content" id="popupImage">
+    </div>
+
+    <div class="bot-popup" id="botPopup">
+        <div class="bot-popup-content">
+            <span class="close-popup" id="closeBotPopup">×</span>
+            <h3>Create New Bot</h3>
+            <form id="botForm">
+                <div class="form-group">
+                    <label for="botName">Bot Name:</label>
+                    <input type="text" id="botName" name="botName" required>
+                </div>
+                <button type="submit" class="create-button">Create</button>
+            </form>
+        </div>
     </div>
 
     <div class="chat-container">
@@ -356,6 +460,26 @@
         const sendMessageButton = document.getElementById("sendMessageButton");
         const emojyPreviewsendMessageButton = document.getElementById("emojyPreview");
         const logoutButton = document.getElementById("logoutButton");
+
+        const createBotButton = document.getElementById("createBotButton");
+        const botPopup = document.getElementById("botPopup");
+        const closeBotPopup = document.getElementById("closeBotPopup");
+        const botForm = document.getElementById("botForm");
+        createBotButton.addEventListener("click", () => {
+            botPopup.style.display = "flex";
+        });
+        
+        // Close popup
+        closeBotPopup.addEventListener("click", () => {
+            botPopup.style.display = "none";
+        });
+        
+        // Close when clicking outside
+        botPopup.addEventListener("click", (e) => {
+            if (e.target === botPopup) {
+                botPopup.style.display = "none";
+            }
+        });
 
         const fileInput = document.getElementById("fileInput");
         const uploadFileButton = document.getElementById("uploadFileButton");
@@ -392,6 +516,34 @@
 
         const roomMessages = {};
         
+        botForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const botName = document.getElementById("botName").value;
+        
+            try {
+                const response = await fetch('/create-bot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        botNick: botName,
+                        room: room
+                    })
+                });
+        
+                if (response.ok) {
+                } else {
+                    const error = await response.json();
+                    alert(`Error: ${error.message}`);
+                }
+            } catch (error) {
+                console.error('Error creating bot:', error);
+                alert('Failed to create bot');
+            }
+        });
+
         async function loadMessages() {
             try {
                 const response = await fetch(`/messages?room=${room}`, {
@@ -417,53 +569,66 @@
                         const timestamp = parts[3];
                         const timestampNew = formatTimestamp(timestamp);
 
+                        console.log(fileName)
+                        console.log(content)
+                
                         const messageDiv = document.createElement("div");
                         messageDiv.classList.add("message");
                         messageDiv.classList.add(sender === nick ? "self" : "other");
-
+                
                         // Create content container
                         const contentContainer = document.createElement("div");
                         contentContainer.classList.add("content");
-        
-                        // Detect file type and handle content
-                        const fileType = detectFileType(content);
-                        console.log(`Detected file type: ${fileType}`);
-        
-                        switch(fileType) {
-                            case 'image/gif':
-                            case 'image/png':
-                            case 'image/jpeg':
-                            case 'image/*': {
-                                const img = createImageElement(content, fileType);
-                                contentContainer.appendChild(img);
-                                break;
-                            }
-                            case 'audio/mpeg': {
-                                const audio = createAudioElement(content);
-                                contentContainer.appendChild(audio);
-                                break;
-                            }
-                            case 'text/html':
-                                return createHtmlPreviewElement(content, fileName);
-                            default: {
-                                const fileIcon = createFileDownloadElement(content, fileName, fileType);
-                                contentContainer.appendChild(fileIcon);
-                                break;
+                
+                        if (fileName === "") {
+                            messageDiv.innerHTML = `
+                                <div class="nick">${sender}</div>
+                                <div class="content">${content}</div>
+                                <div class="time">${timestampNew}</div>
+                            `;
+                        } else {
+                            // Handle file message
+                            const fileType = detectFileType(content);
+                            console.log(`Detected file type: ${fileType}`);
+
+                            // Add message metadata
+                            const nickDiv = document.createElement("div");
+                            nickDiv.classList.add("nick");
+                            nickDiv.textContent = sender;
+                    
+                            const timeDiv = document.createElement("div");
+                            timeDiv.classList.add("time");
+                            timeDiv.textContent = timestampNew;
+                    
+                            messageDiv.appendChild(nickDiv);
+                            messageDiv.appendChild(timeDiv);
+                
+                            switch(fileType) {
+                                case 'image/gif':
+                                case 'image/png':
+                                case 'image/jpeg':
+                                case 'image/*': {
+                                    const img = createImageElement(content, fileType);
+                                    contentContainer.appendChild(img);
+                                    break;
+                                }
+                                case 'audio/mpeg': {
+                                    const audio = createAudioElement(content);
+                                    contentContainer.appendChild(audio);
+                                    break;
+                                }
+                                case 'text/html':
+                                    contentContainer.appendChild(createHtmlPreviewElement(content, fileName));
+                                    break;
+                                default: {
+                                    const fileIcon = createFileDownloadElement(content, fileName, fileType);
+                                    contentContainer.appendChild(fileIcon);
+                                    break;
+                                }
                             }
                         }
-        
-                        // Add message metadata
-                        const nickDiv = document.createElement("div");
-                        nickDiv.classList.add("nick");
-                        nickDiv.textContent = sender;
-        
-                        const timeDiv = document.createElement("div");
-                        timeDiv.classList.add("time");
-                        timeDiv.textContent = timestampNew;
-        
-                        messageDiv.appendChild(nickDiv);
+                
                         messageDiv.appendChild(contentContainer);
-                        messageDiv.appendChild(timeDiv);
                         messagesContainer.appendChild(messageDiv);
                     }
                 });

@@ -157,7 +157,6 @@
             const room = document.getElementById(`room${formId}`).value;
             const nick = document.getElementById(`nick${formId}`).value;
 
-            sessionStorage.setItem("user", String(nick));
             setCookie('user', String(nick), 1200);
 
             try {
@@ -172,7 +171,6 @@
             event.preventDefault();
             const nick = document.getElementById(`nick${formId}`).value;
 
-            sessionStorage.setItem("user", String(nick));
             setCookie('user', String(nick), 1200);
 
             try {
