@@ -1,6 +1,6 @@
 # Chatroom Application
 ## Overview
-This is a decentralized (децентрализованное) chatroom application built with Golang and `go-libp2p-pubsub` library for peer-to-peer communication. Also you can join `AI bot` in your chat
+This is a decentralized chatroom application built with Golang and `go-libp2p-pubsub` library for peer-to-peer communication. Also you can join `AI bot` in your chat
 
 ## Example Workflow
 1. Start the first instance of the application:
